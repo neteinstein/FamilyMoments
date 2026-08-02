@@ -4,5 +4,5 @@ data class Question(
     val id: Int,
     val text: String,
     val languageCode: String,
-    val category: QuestionCategory = QuestionCategory.Reflections
+    val category: QuestionCategory = QuestionCategory.IceBreakers
 )
