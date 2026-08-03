@@ -16,12 +16,14 @@ import org.junit.Before
 import org.junit.Test
 import org.neteinstein.family.domain.model.Question
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
+import org.neteinstein.family.domain.usecase.MarkQuestionAsUsedUseCase
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val getQuestionsUseCase: GetQuestionsUseCase = mockk()
+    private val markQuestionAsUsedUseCase: MarkQuestionAsUsedUseCase = mockk(relaxed = true)
 
     private lateinit var viewModel: HomeViewModel
 
@@ -35,7 +37,7 @@ class HomeViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         coEvery { getQuestionsUseCase(any()) } returns fakeQuestions
-        viewModel = HomeViewModel(getQuestionsUseCase)
+        viewModel = HomeViewModel(getQuestionsUseCase, markQuestionAsUsedUseCase)
     }
 
     @After

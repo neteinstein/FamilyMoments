@@ -1,13 +1,24 @@
 package org.neteinstein.family.data.repository
 
+import android.content.SharedPreferences
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class QuestionRepositoryImplTest {
 
-    private val repository = QuestionRepositoryImpl()
+    private val sharedPreferences: SharedPreferences = mockk(relaxed = true)
+    private lateinit var repository: QuestionRepositoryImpl
+
+    @Before
+    fun setUp() {
+        every { sharedPreferences.getStringSet(any(), any()) } returns emptySet()
+        repository = QuestionRepositoryImpl(sharedPreferences)
+    }
 
     @Test
     fun `getQuestions returns english questions for en locale`() = runTest {

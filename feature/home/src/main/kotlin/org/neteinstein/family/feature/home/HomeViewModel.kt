@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.neteinstein.family.domain.model.Question
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
+import org.neteinstein.family.domain.usecase.MarkQuestionAsUsedUseCase
 
 data class HomeUiState(
     val currentQuestion: Question? = null,
@@ -18,19 +19,22 @@ data class HomeUiState(
 )
 
 class HomeViewModel(
-    private val getQuestionsUseCase: GetQuestionsUseCase
+    private val getQuestionsUseCase: GetQuestionsUseCase,
+    private val markQuestionAsUsedUseCase: MarkQuestionAsUsedUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private var questions: List<Question> = emptyList()
+    private var currentLanguage: String = "en"
 
     init {
         loadQuestions()
     }
 
     fun loadQuestions(languageCode: String = "en") {
+        currentLanguage = languageCode
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             questions = getQuestionsUseCase(languageCode).shuffled()
@@ -65,6 +69,14 @@ class HomeViewModel(
                 currentQuestion = questions[prevIndex],
                 currentIndex = prevIndex
             )
+        }
+    }
+
+    fun markCurrentQuestionAsUsed() {
+        val question = _uiState.value.currentQuestion ?: return
+        viewModelScope.launch {
+            markQuestionAsUsedUseCase(question.id)
+            loadQuestions(currentLanguage)
         }
     }
 }

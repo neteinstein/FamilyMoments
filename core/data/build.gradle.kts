@@ -31,6 +31,7 @@ android {
 dependencies {
     implementation(project(":core:domain"))
     implementation(libs.coroutines.core)
+    implementation(libs.koin.android)
     implementation(libs.koin.core)
 
     testImplementation(libs.junit)

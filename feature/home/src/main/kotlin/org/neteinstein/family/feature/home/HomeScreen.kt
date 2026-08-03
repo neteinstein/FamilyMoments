@@ -12,6 +12,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,18 +26,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -127,6 +129,9 @@ fun HomeScreen(
                         onSwipeRight = {
                             swipeDirection = 1
                             viewModel.previousQuestion()
+                        },
+                        onMarkAsUsed = {
+                            viewModel.markCurrentQuestionAsUsed()
                         }
                     )
                 }
@@ -191,7 +196,8 @@ private fun QuestionCard(
     swipeDirection: Int,
     modifier: Modifier = Modifier,
     onSwipeLeft: () -> Unit,
-    onSwipeRight: () -> Unit
+    onSwipeRight: () -> Unit,
+    onMarkAsUsed: () -> Unit
 ) {
     var offsetX by remember { mutableFloatStateOf(0f) }
     val cardRotation by animateFloatAsState(
@@ -199,6 +205,7 @@ private fun QuestionCard(
         animationSpec = spring(stiffness = Spring.StiffnessLow),
         label = "cardRotation"
     )
+    var showMenu by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier.fillMaxWidth(),
@@ -217,78 +224,104 @@ private fun QuestionCard(
             },
             label = "questionCard"
         ) { question ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-                    .rotate(cardRotation)
-                    .pointerInput(Unit) {
-                        detectHorizontalDragGestures(
-                            onDragEnd = {
-                                when {
-                                    offsetX < -SWIPE_THRESHOLD -> onSwipeLeft()
-                                    offsetX > SWIPE_THRESHOLD -> onSwipeRight()
-                                }
-                                offsetX = 0f
-                            },
-                            onDragCancel = { offsetX = 0f },
-                            onHorizontalDrag = { _, dragAmount ->
-                                offsetX += dragAmount
-                            }
-                        )
-                    },
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Box(
+            Box {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f)
+                        .padding(horizontal = 8.dp)
+                        .rotate(cardRotation)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onLongPress = { showMenu = true }
+                            )
+                        }
+                        .pointerInput(Unit) {
+                            detectHorizontalDragGestures(
+                                onDragEnd = {
+                                    when {
+                                        offsetX < -SWIPE_THRESHOLD -> onSwipeLeft()
+                                        offsetX > SWIPE_THRESHOLD -> onSwipeRight()
+                                    }
+                                    offsetX = 0f
+                                },
+                                onDragCancel = { offsetX = 0f },
+                                onHorizontalDrag = { _, dragAmount ->
+                                    offsetX += dragAmount
+                                }
+                            )
+                        },
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f)
+                                    )
                                 )
                             )
-                        )
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    question?.category?.let { category ->
-                        CategoryPill(
-                            category = category,
-                            modifier = Modifier.align(Alignment.TopEnd)
-                        )
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "💬",
-                            style = MaterialTheme.typography.displaySmall
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = question?.text ?: "",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            lineHeight = MaterialTheme.typography.headlineSmall.lineHeight * 1.2f
-                        )
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Text(
-                            text = "Take turns sharing your answers",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontStyle = FontStyle.Italic,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
+                        question?.category?.let { category ->
+                            CategoryPill(
+                                category = category,
+                                modifier = Modifier.align(Alignment.TopEnd)
+                            )
+                        }
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "💬",
+                                style = MaterialTheme.typography.displaySmall
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Text(
+                                text = question?.text ?: "",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                lineHeight = MaterialTheme.typography.headlineSmall.lineHeight * 1.2f
+                            )
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Text(
+                                text = "Take turns sharing your answers",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontStyle = FontStyle.Italic,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Mark as used") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            onMarkAsUsed()
+                        }
+                    )
                 }
             }
         }
