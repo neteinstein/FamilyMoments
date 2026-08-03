@@ -153,3 +153,9 @@ All jobs must pass before merging.
 - Do **not** hardcode colours in Composables – always use `MaterialTheme.colorScheme.*`
 - Do **not** import cross-feature dependencies (e.g. `feature:home` must not import `feature:settings`)
 - Always run `./gradlew testDebugUnitTest` locally before pushing
+
+---
+
+## Custom Agents
+
+This repo also defines four specialized custom agents — Developer, QA, Architect, Security Manager — in `.github/agents/*.agent.md`, mirrored for Claude Code in `.claude/agents/`. Architect and Security Manager can delegate to Developer and QA via the `agent` tool / `handoffs`. See [`docs/agents/README.md`](../docs/agents/README.md) for the full model.
