@@ -15,6 +15,8 @@ mockk = "1.14.2"
 coroutinesTest = "1.10.2"
 koinTest = "4.0.3"
 splashscreen = "1.0.1"
+json = "20240303"
+ktlintGradle = "12.2.0"
 
 [libraries]
 # Compose BOM
@@ -63,9 +65,11 @@ mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koinTest" }
 koin-test-junit4 = { group = "io.insert-koin", name = "koin-test-junit4", version.ref = "koinTest" }
+json = { group = "org.json", name = "json", version.ref = "json" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
