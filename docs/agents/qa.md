@@ -8,7 +8,7 @@ Writes and runs unit tests, and verifies coverage, for the Family Moments codeba
 
 ## Responsibilities
 
-- Ensure every ViewModel, use case, and repository implementation has unit tests covering the happy path, edge cases, and error states, per `CLAUDE.md`'s Testing conventions.
+- Ensure every ViewModel, use case, and repository implementation has unit tests covering the happy path, edge cases, and error states, per `AGENTS.md`'s Testing conventions.
 - Use JUnit 4 + MockK (`mockk()`, `coEvery`, `coVerify`) + `kotlinx-coroutines-test`. For coroutine-driven code, use `StandardTestDispatcher` set via `Dispatchers.setMain()` / `resetMain()` in `@Before`/`@After`, and drive pending coroutines with `runTest { }` + `testDispatcher.scheduler.advanceUntilIdle()`.
 - Name test methods as backtick-quoted sentences, e.g. `` fun `nextQuestion advances to next question`() ``.
 - Use `core/domain/.../GetRandomQuestionUseCaseTest.kt` (use case + mocked repository) and `feature/home/.../HomeViewModelTest.kt` (ViewModel + mocked use case + dispatcher setup) as templates for new tests.

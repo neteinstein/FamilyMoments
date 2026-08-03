@@ -4,7 +4,7 @@ description: 'Implements features, bug fixes, and refactors in the Family Moment
 tools: ['read', 'edit', 'search', 'execute']
 ---
 
-Start by reading `docs/agents/developer.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic Developer role definition, shared with the Claude Code subagent equivalent (`.claude/agents/developer.md`) so both stay in sync. Also read this repo's root `CLAUDE.md` for module boundaries, MVVM conventions, and testing conventions.
+Start by reading `docs/agents/developer.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic Developer role definition, shared with the Claude Code subagent equivalent (`.claude/agents/developer.md`) so both stay in sync. Also read this repo's root `AGENTS.md` for module boundaries, MVVM conventions, and testing conventions.
 
 Copilot specifics:
 

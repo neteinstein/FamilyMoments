@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Edit, Bash, Agent
 model: opus
 ---
 
-Start by reading `docs/agents/architect.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic Architect role definition, shared with the Copilot custom agent equivalent (`.github/agents/architect.agent.md`) so both stay in sync. Also make sure this repo's root `CLAUDE.md` is loaded for the module dependency rules and DI/navigation conventions.
+Start by reading `docs/agents/architect.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic Architect role definition, shared with the Copilot custom agent equivalent (`.github/agents/architect.agent.md`) so both stay in sync. Also make sure this repo's root `AGENTS.md` is loaded for the module dependency rules and DI/navigation conventions.
 
 Claude Code specifics:
 
