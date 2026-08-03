@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.koin.androidx.compose.koinViewModel
+import org.neteinstein.family.domain.model.QuestionCategory
 
 private const val SWIPE_THRESHOLD = 100f
 
@@ -256,6 +257,12 @@ private fun QuestionCard(
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    question?.category?.let { category ->
+                        CategoryPill(
+                            category = category,
+                            modifier = Modifier.align(Alignment.TopEnd)
+                        )
+                    }
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
@@ -285,6 +292,26 @@ private fun QuestionCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CategoryPill(
+    category: QuestionCategory,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = category.label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            maxLines = 1
+        )
     }
 }
 
