@@ -30,11 +30,17 @@ Run a single test class or method (`--tests` works with any of the module target
 ./gradlew :feature:home:testDebugUnitTest --tests "*.HomeViewModelTest.nextQuestion advances to next question"
 ```
 
-There is no dedicated Kotlin lint/ktlint/detekt task configured in this repo — `assembleDebug` (via the Kotlin/Android Gradle plugins) is the compile-time check CI relies on.
+`./gradlew ktlintCheck` runs the [ktlint Gradle plugin](https://github.com/JLLeitschuh/ktlint-gradle) (applied per-module, configured in each module's `build.gradle.kts` + root `.editorconfig`) — the formatting/style gate CI relies on. Run `./gradlew ktlintFormat` to auto-fix violations.
 
-CI (`.github/workflows/pr.yml`) runs three independent jobs on every PR into `main`/`develop`: `assembleDebug`, `testDebugUnitTest`, and `testDebugUnitTestCoverage` (coverage report uploaded to Codecov). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied.
+CI (`.github/workflows/pr.yml`) runs four independent jobs on every PR into `main`/`develop`: `ktlint`, `assembleDebug`, `testDebugUnitTest`, and `testDebugUnitTestCoverage` (coverage report uploaded to Codecov). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied.
 
-CD (`.github/workflows/release.yml`) runs on every push to `main` (plus manual `workflow_dispatch`): re-runs unit tests against the exact commit on `main` (since squash/rebase merges never build that commit directly), builds a signed `assembleRelease` APK, and publishes it as a GitHub Release tagged `v1.0.<run_number>`. Signing reads `KEYSTORE_BASE64`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` from repo Action secrets (job fails fast if any are unset) and decodes the keystore to a temp file consumed by `signingConfigs.release` in `app/build.gradle.kts`; `versionCode`/`versionName` are overridable via `APP_VERSION_CODE`/`APP_VERSION_NAME` env vars, falling back to `1`/`1.0.0` for local/debug builds without a keystore (which sign with the debug config instead). `.github/dependabot.yml` runs weekly `gradle` and `github-actions` update checks.
+## Releases
+
+Pushing to `main` (or a manual `workflow_dispatch`) triggers `.github/workflows/release.yml`, which runs `ktlintCheck` + `testDebugUnitTest`, builds a signed `assembleRelease` APK, and publishes it as a GitHub Release tagged `v1.0.<run number>`. Signing requires four repo secrets: `KEYSTORE_BASE64` (base64-encoded `.jks`/`.keystore` file), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`. The workflow fails fast if any are missing. `app/build.gradle.kts`'s `versionCode`/`versionName` and `signingConfigs["release"]` read `APP_VERSION_CODE`/`APP_VERSION_NAME`/`KEYSTORE_FILE`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` env vars set by the workflow, falling back to debug signing and static defaults for local builds.
+
+The Settings screen's "Update to latest" button (`feature:settings`'s `SettingsViewModel`/`SettingsScreen`) checks `https://api.github.com/repos/neteinstein/FamilyMoments/releases/latest` (`core:data`'s `GitHubUpdateRepositoryImpl`), compares the tag against the installed `versionName` (`core:domain`'s `isNewerVersion`), and downloads/installs the APK asset via `AppUpdateInstallerImpl` (a `FileProvider`-backed install flow gated by the `REQUEST_INSTALL_PACKAGES` permission — see `app`'s `AndroidManifest.xml`).
+
+`.github/dependabot.yml` runs weekly `gradle` and `github-actions` update checks.
 
 ## Architecture
 

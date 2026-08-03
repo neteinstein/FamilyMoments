@@ -38,7 +38,7 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      # Fail fast before spending CI time on test/build if the release secrets aren't set up.
+      # Fail fast before spending CI time on lint/test/build if the release secrets aren't set up.
       - name: Validate required secrets
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -56,9 +56,12 @@ jobs:
             exit 1
           fi
 
-      # PR Checks validates the PR branch/merge ref, but squash- or rebase-merges land a commit on
-      # main that was never itself built or tested, so this is the only gate that actually covers
-      # the exact commit about to be released.
+      # PR Checks (pr.yml) validates the PR branch/merge ref, but a squash- or rebase-merge lands
+      # a commit on main that was never itself built or tested, so this is the only gate that
+      # actually covers the exact commit about to be released.
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck --console=plain --no-daemon --stacktrace
+
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
 

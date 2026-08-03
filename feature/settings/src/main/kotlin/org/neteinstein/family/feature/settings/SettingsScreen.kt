@@ -16,8 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -29,18 +31,28 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: SettingsViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.onScreenEntered()
+    }
 
     Scaffold(
         topBar = {
@@ -147,8 +159,116 @@ fun SettingsScreen(
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Updates",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    UpdateSection(
+                        status = uiState.updateStatus,
+                        onUpdateClicked = viewModel::onUpdateClicked,
+                        onEnableSideloadingClicked = viewModel::onEnableSideloadingClicked
+                    )
+                }
             }
         }
+    }
+}
+
+/**
+ * Info text + button that checks GitHub Releases and, if allowed, downloads and installs a newer
+ * build (see [SettingsViewModel.onUpdateClicked]). The button stays enabled in every state except
+ * while a check/download is actually in flight, so [UpdateStatus.SideloadingBlocked]/
+ * [UpdateStatus.Failed]/[UpdateStatus.UpToDate] can all be retried with a plain second tap - e.g.
+ * after the user enables sideloading in system Settings and returns to this screen.
+ */
+@Composable
+private fun UpdateSection(
+    status: UpdateStatus,
+    onUpdateClicked: () -> Unit,
+    onEnableSideloadingClicked: () -> Unit
+) {
+    val isBusy = status is UpdateStatus.Checking || status is UpdateStatus.Downloading
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(
+            text = "Checks this app's own GitHub releases for a newer version and installs it.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(
+            onClick = onUpdateClicked,
+            enabled = !isBusy,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Update to latest")
+        }
+
+        when (status) {
+            is UpdateStatus.Idle -> Unit
+            is UpdateStatus.Checking -> UpdateStatusRow(text = "Checking for updates…")
+            is UpdateStatus.Downloading -> UpdateStatusRow(text = "Downloading update…")
+            is UpdateStatus.UpToDate ->
+                Text(
+                    text = "You're on the latest version (${status.currentVersionName}).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            is UpdateStatus.UpdateAvailable -> Unit
+            is UpdateStatus.Failed ->
+                Text(
+                    text = status.message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            is UpdateStatus.SideloadingBlocked -> {
+                Text(
+                    text = "Allow this app to install updates to continue.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = onEnableSideloadingClicked,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Enable installing updates")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpdateStatusRow(text: String) {
+    Row(
+        modifier = Modifier.padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 12.dp)
+        )
     }
 }
 

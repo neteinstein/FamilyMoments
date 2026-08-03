@@ -14,6 +14,32 @@ env:
   JAVA_DISTRIBUTION: 'temurin'
 
 jobs:
+  # ─── Lint ───────────────────────────────────────────────────────────────────
+  lint:
+    name: ktlint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck --console=plain --no-daemon --stacktrace
+
   # ─── Compile ────────────────────────────────────────────────────────────────
   compile:
     name: Compile
