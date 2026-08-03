@@ -94,3 +94,7 @@ Single `NavHost` in `app/.../navigation/AppNavigation.kt`, routes defined as a `
 - Coroutine-driven tests use `StandardTestDispatcher`, set via `Dispatchers.setMain()`/`resetMain()` in `@Before`/`@After`, and `runTest { }` with `testDispatcher.scheduler.advanceUntilIdle()` to drive pending coroutines.
 - Test method names are backtick-quoted sentences: `` fun `nextQuestion advances to next question`() ``.
 - Existing tests to use as templates: `core/domain/.../GetRandomQuestionUseCaseTest.kt` (use case + mocked repository) and `feature/home/.../HomeViewModelTest.kt` (ViewModel + mocked use case + coroutine dispatcher setup).
+
+## Agent orchestration
+
+This repo defines four agent roles — Developer, QA, Architect, Security Manager — for both Claude Code subagents (`.claude/agents/`) and GitHub Copilot custom agents (`.github/agents/`). Architect and Security Manager delegate to Developer and QA rather than implementing everything themselves. See [`docs/agents/README.md`](docs/agents/README.md) for the full orchestration model, and `docs/agents/<role>.md` for each role's canonical instructions.
