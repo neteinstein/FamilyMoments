@@ -34,6 +34,8 @@ There is no dedicated Kotlin lint/ktlint/detekt task configured in this repo —
 
 CI (`.github/workflows/pr.yml`) runs three independent jobs on every PR into `main`/`develop`: `assembleDebug`, `testDebugUnitTest`, and `testDebugUnitTestCoverage` (coverage report uploaded to Codecov). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied.
 
+CD (`.github/workflows/release.yml`) runs on every push to `main` (plus manual `workflow_dispatch`): re-runs unit tests against the exact commit on `main` (since squash/rebase merges never build that commit directly), builds a signed `assembleRelease` APK, and publishes it as a GitHub Release tagged `v1.0.<run_number>`. Signing reads `KEYSTORE_BASE64`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` from repo Action secrets (job fails fast if any are unset) and decodes the keystore to a temp file consumed by `signingConfigs.release` in `app/build.gradle.kts`; `versionCode`/`versionName` are overridable via `APP_VERSION_CODE`/`APP_VERSION_NAME` env vars, falling back to `1`/`1.0.0` for local/debug builds without a keystore (which sign with the debug config instead). `.github/dependabot.yml` runs weekly `gradle` and `github-actions` update checks.
+
 ## Architecture
 
 Gradle multi-module project, wired via `settings.gradle.kts`:
