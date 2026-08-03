@@ -4,7 +4,7 @@ description: 'Writes and runs JUnit4/MockK unit tests and verifies coverage targ
 tools: ['read', 'edit', 'search', 'execute']
 ---
 
-Start by reading `docs/agents/qa.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic QA role definition, shared with the Claude Code subagent equivalent (`.claude/agents/qa.md`) so both stay in sync. Also read this repo's root `CLAUDE.md`, especially its Testing conventions section.
+Start by reading `docs/agents/qa.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic QA role definition, shared with the Claude Code subagent equivalent (`.claude/agents/qa.md`) so both stay in sync. Also read this repo's root `AGENTS.md`, especially its Testing conventions section.
 
 Copilot specifics:
 

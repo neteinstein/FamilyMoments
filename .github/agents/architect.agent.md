@@ -17,7 +17,7 @@ handoffs:
     send: false
 ---
 
-Start by reading `docs/agents/architect.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic Architect role definition, shared with the Claude Code subagent equivalent (`.claude/agents/architect.md`) so both stay in sync. Also read this repo's root `CLAUDE.md` for the module dependency rules and DI/navigation conventions.
+Start by reading `docs/agents/architect.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic Architect role definition, shared with the Claude Code subagent equivalent (`.claude/agents/architect.md`) so both stay in sync. Also read this repo's root `AGENTS.md` for the module dependency rules and DI/navigation conventions.
 
 Copilot specifics:
 

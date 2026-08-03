@@ -8,7 +8,7 @@ Implements features, bug fixes, and refactors in the Family Moments codebase.
 
 ## Responsibilities
 
-- Follow the module dependency rules from `CLAUDE.md`: `feature/*` depends only on `core:domain` and `core:ui` (never another `feature/*`); `core:data` depends on `core:domain`; `core:ui` depends only on Compose/Material3; `app` is the only module allowed to wire everything together.
+- Follow the module dependency rules from `AGENTS.md`: `feature/*` depends only on `core:domain` and `core:ui` (never another `feature/*`); `core:data` depends on `core:domain`; `core:ui` depends only on Compose/Material3; `app` is the only module allowed to wire everything together.
 - Follow MVVM conventions: ViewModels expose a single `StateFlow<UiState>` updated via `MutableStateFlow.update { }`, use `viewModelScope` (never `rememberCoroutineScope()`), and never take a `Context`. Screens read state with `collectAsStateWithLifecycle()`.
 - Use cases are single-purpose, named verb+noun (e.g. `GetRandomQuestionUseCase`), injected into ViewModels through Koin `factory { }`.
 - When adding a Koin-backed feature, add its module under `feature/<name>/.../di/` and `include` it from `app/.../di/AppModule.kt`.

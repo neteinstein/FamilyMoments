@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash
 model: sonnet
 ---
 
-Start by reading `docs/agents/qa.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic QA role definition, shared with the Copilot custom agent equivalent (`.github/agents/qa.agent.md`) so both stay in sync. Also make sure this repo's root `CLAUDE.md` is loaded, especially its Testing conventions section.
+Start by reading `docs/agents/qa.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic QA role definition, shared with the Copilot custom agent equivalent (`.github/agents/qa.agent.md`) so both stay in sync. Also make sure this repo's root `AGENTS.md` is loaded, especially its Testing conventions section.
 
 Claude Code specifics:
 

@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash
 model: sonnet
 ---
 
-Start by reading `docs/agents/developer.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic Developer role definition, shared with the Copilot custom agent equivalent (`.github/agents/developer.agent.md`) so both stay in sync. Also make sure this repo's root `CLAUDE.md` is loaded for module boundaries, MVVM conventions, and testing conventions.
+Start by reading `docs/agents/developer.md` in this repository and following it as your primary instructions for this session — it's the canonical, tool-agnostic Developer role definition, shared with the Copilot custom agent equivalent (`.github/agents/developer.agent.md`) so both stay in sync. Also make sure this repo's root `AGENTS.md` is loaded for module boundaries, MVVM conventions, and testing conventions.
 
 Claude Code specifics:
 
