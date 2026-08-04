@@ -15,7 +15,7 @@ Family Moments is an Android app that helps families spark meaningful conversati
 ```bash
 ./gradlew assembleDebug                  # compile (mirrors CI "Compile" job)
 ./gradlew testDebugUnitTest              # run all unit tests (mirrors CI "Unit Tests" job)
-./gradlew testDebugUnitTestCoverage      # run tests + generate AGP built-in coverage reports (mirrors CI "Code Coverage" job)
+./gradlew createDebugUnitTestCoverageReport  # run tests + generate AGP built-in coverage reports (mirrors CI "Code Coverage" job)
 ```
 
 Run tests for a single module:
@@ -32,13 +32,15 @@ Run a single test class or method (`--tests` works with any of the module target
 
 `./gradlew ktlintCheck` runs the [ktlint Gradle plugin](https://github.com/JLLeitschuh/ktlint-gradle) (applied per-module, configured in each module's `build.gradle.kts` + root `.editorconfig`) — the formatting/style gate CI relies on. Run `./gradlew ktlintFormat` to auto-fix violations.
 
-CI (`.github/workflows/pr.yml`) runs four independent jobs on every PR into `main`/`develop`: `ktlint`, `assembleDebug`, `testDebugUnitTest`, and `testDebugUnitTestCoverage` (coverage report uploaded to Codecov). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied.
+CI (`.github/workflows/pr.yml`) runs four independent jobs on every PR into `main`/`develop`: `ktlint`, `assembleDebug`, `testDebugUnitTest`, and `createDebugUnitTestCoverageReport` (coverage report uploaded to Codecov). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied.
 
 ## Releases
 
 Pushing to `main` (or a manual `workflow_dispatch`) triggers `.github/workflows/release.yml`, which runs `ktlintCheck` + `testDebugUnitTest`, builds a signed `assembleRelease` APK, and publishes it as a GitHub Release tagged `v1.0.<run number>`. Signing requires four repo secrets: `KEYSTORE_BASE64` (base64-encoded `.jks`/`.keystore` file), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`. The workflow fails fast if any are missing. `app/build.gradle.kts`'s `versionCode`/`versionName` and `signingConfigs["release"]` read `APP_VERSION_CODE`/`APP_VERSION_NAME`/`KEYSTORE_FILE`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` env vars set by the workflow, falling back to debug signing and static defaults for local builds.
 
 The Settings screen's "Update to latest" button (`feature:settings`'s `SettingsViewModel`/`SettingsScreen`) checks `https://api.github.com/repos/neteinstein/FamilyMoments/releases/latest` (`core:data`'s `GitHubUpdateRepositoryImpl`), compares the tag against the installed `versionName` (`core:domain`'s `isNewerVersion`), and downloads/installs the APK asset via `AppUpdateInstallerImpl` (a `FileProvider`-backed install flow gated by the `REQUEST_INSTALL_PACKAGES` permission — see `app`'s `AndroidManifest.xml`).
+
+`.github/dependabot.yml` runs weekly `gradle` and `github-actions` update checks.
 
 ## Architecture
 

@@ -22,13 +22,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(
-    onSplashFinished: () -> Unit
-) {
+fun SplashScreen(onSplashFinished: () -> Unit) {
     val scale = remember { Animatable(0.4f) }
     val alpha = remember { Animatable(0f) }
     val textAlpha = remember { Animatable(0f) }

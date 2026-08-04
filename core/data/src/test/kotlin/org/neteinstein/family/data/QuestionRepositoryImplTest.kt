@@ -27,7 +27,7 @@ class QuestionRepositoryImplTest {
 
     @Test
     fun `getQuestions defaults to english for unknown locale`() = runTest {
-        val questions = repository.getQuestions("de")
+        val questions = repository.getQuestions("it")
 
         assertTrue(questions.isNotEmpty())
         assertTrue(questions.all { it.languageCode == "en" })

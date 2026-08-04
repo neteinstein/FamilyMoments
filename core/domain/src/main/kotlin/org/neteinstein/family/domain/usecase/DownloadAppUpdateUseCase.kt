@@ -10,8 +10,6 @@ import org.neteinstein.family.domain.repository.UpdateRepository
  * than folded into [CheckForUpdateUseCase]) so a caller can gate the download behind a
  * sideloading-permission check in between the two calls.
  */
-class DownloadAppUpdateUseCase(
-    private val updateRepository: UpdateRepository
-) {
+class DownloadAppUpdateUseCase(private val updateRepository: UpdateRepository) {
     suspend operator fun invoke(update: AppUpdate): Result<File> = updateRepository.downloadUpdate(update)
 }

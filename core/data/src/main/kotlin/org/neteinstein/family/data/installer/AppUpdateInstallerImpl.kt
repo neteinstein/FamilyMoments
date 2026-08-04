@@ -16,9 +16,7 @@ import org.neteinstein.family.domain.repository.AppUpdateInstaller
  * needed here - both platform APIs this class calls have existed since the oldest OS version this
  * app supports.
  */
-class AppUpdateInstallerImpl(
-    private val context: Context
-) : AppUpdateInstaller {
+class AppUpdateInstallerImpl(private val context: Context) : AppUpdateInstaller {
     override fun canInstallPackages(): Boolean = context.packageManager.canRequestPackageInstalls()
 
     override fun openInstallPermissionSettings() {

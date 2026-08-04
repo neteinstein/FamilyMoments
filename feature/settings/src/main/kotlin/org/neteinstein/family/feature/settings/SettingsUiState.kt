@@ -2,9 +2,7 @@ package org.neteinstein.family.feature.settings
 
 import org.neteinstein.family.domain.model.AppUpdate
 
-data class SettingsUiState(
-    val updateStatus: UpdateStatus = UpdateStatus.Idle
-)
+data class SettingsUiState(val updateStatus: UpdateStatus = UpdateStatus.Idle)
 
 /** Drives the "Update to latest" button and its status text on the Settings screen. */
 sealed class UpdateStatus {

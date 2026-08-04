@@ -10,6 +10,10 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+
 jobs:
   release:
     name: Build and publish release
@@ -18,20 +22,23 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: gradle
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      # Fail fast before spending CI time on tests/build if the release secrets aren't set up.
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # Fail fast before spending CI time on lint/test/build if the release secrets aren't set up.
       - name: Validate required secrets
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -53,10 +60,10 @@ jobs:
       # a commit on main that was never itself built or tested, so this is the only gate that
       # actually covers the exact commit about to be released.
       - name: Run ktlint
-        run: ./gradlew ktlintCheck --console=plain
+        run: ./gradlew ktlintCheck --console=plain --no-daemon --stacktrace
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --console=plain
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
 
       - name: Decode signing keystore
         env:
@@ -71,7 +78,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           APP_VERSION_CODE: ${{ github.run_number }}
           APP_VERSION_NAME: "1.0.${{ github.run_number }}"
-        run: ./gradlew assembleRelease --console=plain
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       # Renames the build output to the release-facing artifact name and computes its SHA-1 so
       # both can be surfaced consistently (asset name + release notes) in the next step.
