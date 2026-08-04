@@ -12,12 +12,6 @@ android {
         minSdk = 32
     }
 
-    buildTypes {
-        debug {
-            enableUnitTestCoverage = true
-        }
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
