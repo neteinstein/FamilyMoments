@@ -32,9 +32,9 @@ fun FamilyMomentsLogo(modifier: Modifier = Modifier) {
 
         // Three figures (parent + parent + child)
         val figureBaseY = cy + r * 0.18f
-        drawFigure(cx - r * 0.30f, figureBaseY, r * 0.14f, Color(0xFF6F5B40))  // left parent
-        drawFigure(cx + r * 0.30f, figureBaseY, r * 0.14f, Color(0xFF6F5B40))  // right parent
-        drawFigure(cx, figureBaseY + r * 0.04f, r * 0.10f, Color(0xFFBF6900))  // child (smaller)
+        drawFigure(cx - r * 0.30f, figureBaseY, r * 0.14f, Color(0xFF6F5B40)) // left parent
+        drawFigure(cx + r * 0.30f, figureBaseY, r * 0.14f, Color(0xFF6F5B40)) // right parent
+        drawFigure(cx, figureBaseY + r * 0.04f, r * 0.10f, Color(0xFFBF6900)) // child (smaller)
 
         // Stars / sparkles
         drawSparkle(cx - r * 0.6f, cy - r * 0.5f, r * 0.06f, Color(0xFFFFB95A))

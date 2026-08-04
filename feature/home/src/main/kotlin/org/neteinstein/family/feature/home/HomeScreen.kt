@@ -35,12 +35,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,10 +57,7 @@ import org.neteinstein.family.domain.model.QuestionCategory
 private const val SWIPE_THRESHOLD = 100f
 
 @Composable
-fun HomeScreen(
-    onSettingsClick: () -> Unit,
-    viewModel: HomeViewModel = koinViewModel()
-) {
+fun HomeScreen(onSettingsClick: () -> Unit, viewModel: HomeViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var swipeDirection by remember { mutableIntStateOf(0) } // -1 left, +1 right, 0 none
 
@@ -209,10 +203,10 @@ private fun QuestionCard(
             transitionSpec = {
                 if (swipeDirection <= 0) {
                     (slideInHorizontally(tween(400)) { it } + fadeIn(tween(300))) togetherWith
-                            (slideOutHorizontally(tween(400)) { -it } + fadeOut(tween(300)))
+                        (slideOutHorizontally(tween(400)) { -it } + fadeOut(tween(300)))
                 } else {
                     (slideInHorizontally(tween(400)) { -it } + fadeIn(tween(300))) togetherWith
-                            (slideOutHorizontally(tween(400)) { it } + fadeOut(tween(300)))
+                        (slideOutHorizontally(tween(400)) { it } + fadeOut(tween(300)))
                 }
             },
             label = "questionCard"
@@ -296,10 +290,7 @@ private fun QuestionCard(
 }
 
 @Composable
-private fun CategoryPill(
-    category: QuestionCategory,
-    modifier: Modifier = Modifier
-) {
+private fun CategoryPill(category: QuestionCategory, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
@@ -333,8 +324,11 @@ private fun ProgressDots(current: Int, total: Int) {
                     .size(size.dp)
                     .clip(CircleShape)
                     .background(
-                        if (isSelected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                        if (isSelected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                        }
                     )
             )
         }

@@ -82,15 +82,12 @@ class GitHubUpdateRepositoryImplTest {
         assertTrue(exception is IllegalStateException)
     }
 
-    private fun releaseJson(
-        tagName: String,
-        assetName: String
-    ) = """
+    private fun releaseJson(tagName: String, assetName: String) = """
         {
           "tag_name": "$tagName",
           "assets": [
             { "name": "$assetName", "browser_download_url": "https://example.com/$assetName" }
           ]
         }
-        """.trimIndent()
+    """.trimIndent()
 }

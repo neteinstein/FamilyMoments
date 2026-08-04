@@ -49,7 +49,7 @@ android {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             // Sign with the real release key when CI provides one; otherwise fall back to debug
             // signing so `./gradlew assembleRelease` still works on a developer machine without

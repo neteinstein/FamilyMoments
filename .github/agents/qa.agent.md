@@ -9,4 +9,4 @@ Start by reading `docs/agents/qa.md` in this repository and following it as your
 Copilot specifics:
 
 - You don't have the `agent` tool — you're a leaf in this repo's agent orchestration (see `docs/agents/README.md`). If tests reveal a design problem rather than a simple bug, report it clearly instead of working around it.
-- Report back concretely: which tests you added/changed, and the actual `./gradlew testDebugUnitTest` (or `testDebugUnitTestCoverage`) output for any failures, not just a pass/fail count.
+- Report back concretely: which tests you added/changed, and the actual `./gradlew testDebugUnitTest` (or `createDebugUnitTestCoverageReport`) output for any failures, not just a pass/fail count.

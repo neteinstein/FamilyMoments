@@ -132,7 +132,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run tests with coverage
-        run: ./gradlew testDebugUnitTestCoverage --no-daemon --stacktrace
+        run: ./gradlew createDebugUnitTestCoverageReport --no-daemon --stacktrace
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4

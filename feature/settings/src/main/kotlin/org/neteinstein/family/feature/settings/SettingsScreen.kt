@@ -21,7 +21,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,10 +42,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
-    onBack: () -> Unit,
-    viewModel: SettingsViewModel = koinViewModel()
-) {
+fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = koinViewModel()) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -196,11 +192,7 @@ fun SettingsScreen(
  * after the user enables sideloading in system Settings and returns to this screen.
  */
 @Composable
-private fun UpdateSection(
-    status: UpdateStatus,
-    onUpdateClicked: () -> Unit,
-    onEnableSideloadingClicked: () -> Unit
-) {
+private fun UpdateSection(status: UpdateStatus, onUpdateClicked: () -> Unit, onEnableSideloadingClicked: () -> Unit) {
     val isBusy = status is UpdateStatus.Checking || status is UpdateStatus.Downloading
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -273,12 +265,7 @@ private fun UpdateStatusRow(text: String) {
 }
 
 @Composable
-private fun SettingsItem(
-    icon: @Composable () -> Unit,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit
-) {
+private fun SettingsItem(icon: @Composable () -> Unit, title: String, subtitle: String, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),

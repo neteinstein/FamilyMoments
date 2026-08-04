@@ -295,12 +295,11 @@ object QuestionDataSource {
         Question(id = 450, text = "Was ist ein kleiner Gefallen oder eine Freundlichkeit, die jemand kürzlich für dich getan hat und die dich zum Lächeln gebracht hat?", languageCode = "de", category = QuestionCategory.DailyLife),
     )
 
-    fun getQuestions(languageCode: String): List<Question> =
-        when (languageCode) {
-            "pt" -> portugueseQuestions
-            "es" -> spanishQuestions
-            "fr" -> frenchQuestions
-            "de" -> germanQuestions
-            else -> englishQuestions
-        }
+    fun getQuestions(languageCode: String): List<Question> = when (languageCode) {
+        "pt" -> portugueseQuestions
+        "es" -> spanishQuestions
+        "fr" -> frenchQuestions
+        "de" -> germanQuestions
+        else -> englishQuestions
+    }
 }

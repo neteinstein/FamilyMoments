@@ -17,9 +17,7 @@ data class HomeUiState(
     val totalQuestions: Int = 0
 )
 
-class HomeViewModel(
-    private val getQuestionsUseCase: GetQuestionsUseCase
-) : ViewModel() {
+class HomeViewModel(private val getQuestionsUseCase: GetQuestionsUseCase) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()

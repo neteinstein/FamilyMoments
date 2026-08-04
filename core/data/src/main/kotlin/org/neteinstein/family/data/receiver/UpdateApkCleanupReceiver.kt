@@ -31,13 +31,12 @@ import org.neteinstein.family.domain.usecase.ClearDownloadedUpdateUseCase
  * suspend function and has a short execution budget, so the actual cleanup runs on a
  * [goAsync]-backed coroutine instead of blocking it directly.
  */
-class UpdateApkCleanupReceiver : BroadcastReceiver(), KoinComponent {
+class UpdateApkCleanupReceiver :
+    BroadcastReceiver(),
+    KoinComponent {
     private val clearDownloadedUpdateUseCase: ClearDownloadedUpdateUseCase by inject()
 
-    override fun onReceive(
-        context: Context,
-        intent: Intent
-    ) {
+    override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
 
         val pendingResult = goAsync()

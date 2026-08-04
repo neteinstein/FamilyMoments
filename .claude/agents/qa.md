@@ -10,4 +10,4 @@ Start by reading `docs/agents/qa.md` in this repository and following it as your
 Claude Code specifics:
 
 - You don't have the `Agent` tool — you're a leaf in this repo's agent orchestration (see `docs/agents/README.md`). If tests reveal a design problem rather than a simple bug, report it clearly instead of working around it; you can't hand it back to `developer` mid-task.
-- Report back concretely: which tests you added/changed, the actual `./gradlew testDebugUnitTest` (or `testDebugUnitTestCoverage`) output for failures, not just a pass/fail count.
+- Report back concretely: which tests you added/changed, the actual `./gradlew testDebugUnitTest` (or `createDebugUnitTestCoverageReport`) output for failures, not just a pass/fail count.
