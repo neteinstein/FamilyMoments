@@ -14,7 +14,7 @@ espresso = "3.6.1"
 mockk = "1.14.2"
 coroutinesTest = "1.10.2"
 koinTest = "4.0.3"
-splashscreen = "1.0.1"
+splashscreen = "1.2.0"
 json = "20240303"
 ktlintGradle = "12.2.0"
 
