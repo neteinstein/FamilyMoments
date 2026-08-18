@@ -90,6 +90,12 @@ Every push to `main` triggers `.github/workflows/release.yml`: it re-validates t
 Release tagged `v1.0.<run number>`. See [`AGENTS.md`](AGENTS.md#releases) for the required signing
 secrets and the in-app update flow that consumes these releases.
 
+## Play Store submission
+
+Store listing text, generated icon/feature-graphic/screenshot assets, and the full submission
+checklist (including a required change before this app can be published on Play) live in
+[`docs/play-store/SUBMISSION_GUIDE.md`](docs/play-store/SUBMISSION_GUIDE.md).
+
 ## Contributing
 
 Issues and pull requests are welcome. See [`AGENTS.md`](AGENTS.md) for coding standards, module
