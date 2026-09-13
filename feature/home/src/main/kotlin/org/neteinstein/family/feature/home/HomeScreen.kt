@@ -564,8 +564,8 @@ private fun QuestionCard(
                                     Brush.linearGradient(
                                         colors =
                                             listOf(
-                                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f),
+                                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f),
+                                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.15f),
                                             ),
                                     ),
                             ).padding(32.dp),
@@ -701,8 +701,8 @@ private fun GridQuestionCard(
                             Brush.linearGradient(
                                 colors =
                                     listOf(
-                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f),
+                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f),
+                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.15f),
                                     ),
                             ),
                     ).padding(10.dp),

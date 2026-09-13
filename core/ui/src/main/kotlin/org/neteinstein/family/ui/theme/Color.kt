@@ -2,16 +2,16 @@ package org.neteinstein.family.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary palette – warm amber/gold family
-val PrimaryLight = Color(0xFFBF6900)
+// Primary palette – LoopGain navy/coral family
+val PrimaryLight = Color(0xFFE5342F)
 val OnPrimaryLight = Color(0xFFFFFFFF)
-val PrimaryContainerLight = Color(0xFFFFDDB5)
-val OnPrimaryContainerLight = Color(0xFF3D1E00)
+val PrimaryContainerLight = Color(0xFFFFDAD6)
+val OnPrimaryContainerLight = Color(0xFF5A1A16)
 
-val SecondaryLight = Color(0xFF6F5B40)
+val SecondaryLight = Color(0xFF1B365D)
 val OnSecondaryLight = Color(0xFFFFFFFF)
-val SecondaryContainerLight = Color(0xFFF9DEBA)
-val OnSecondaryContainerLight = Color(0xFF271904)
+val SecondaryContainerLight = Color(0xFFD8E2F0)
+val OnSecondaryContainerLight = Color(0xFF0E2038)
 
 val TertiaryLight = Color(0xFF4D6544)
 val OnTertiaryLight = Color(0xFFFFFFFF)
@@ -23,13 +23,13 @@ val OnErrorLight = Color(0xFFFFFFFF)
 val ErrorContainerLight = Color(0xFFFFDAD6)
 val OnErrorContainerLight = Color(0xFF410002)
 
-val BackgroundLight = Color(0xFFFFF8F4)
-val OnBackgroundLight = Color(0xFF201A14)
-val SurfaceLight = Color(0xFFFFF8F4)
-val OnSurfaceLight = Color(0xFF201A14)
-val SurfaceVariantLight = Color(0xFFF0E0CF)
-val OnSurfaceVariantLight = Color(0xFF4F4539)
-val OutlineLight = Color(0xFF817567)
+val BackgroundLight = Color(0xFFF7F8FA)
+val OnBackgroundLight = Color(0xFF14202E)
+val SurfaceLight = Color(0xFFFFFFFF)
+val OnSurfaceLight = Color(0xFF14202E)
+val SurfaceVariantLight = Color(0xFFE9EDF3)
+val OnSurfaceVariantLight = Color(0xFF4B5A6E)
+val OutlineLight = Color(0xFF8A97A8)
 
 // Dark palette
 val PrimaryDark = Color(0xFFFFB95A)
