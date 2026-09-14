@@ -9,6 +9,9 @@ data class SettingsUiState(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     /** False on the Play Store flavor, which hides the "Updates" section entirely - see SettingsViewModel. */
     val updatesEnabled: Boolean = true,
+    /** Number of cards hidden via swipe-down on Home, out of [totalCardsCount]. */
+    val hiddenCardsCount: Int = 0,
+    val totalCardsCount: Int = 0,
 )
 
 /** Drives the "Reset Cards" button and its status text on the Settings screen. */

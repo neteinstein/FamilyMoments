@@ -11,9 +11,12 @@ import org.neteinstein.family.domain.model.AppUpdate
 import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.domain.model.UpdateCheckResult
 import org.neteinstein.family.domain.repository.AppUpdateInstaller
+import org.neteinstein.family.domain.repository.LocaleProvider
 import org.neteinstein.family.domain.usecase.CheckForUpdateUseCase
 import org.neteinstein.family.domain.usecase.DownloadAppUpdateUseCase
+import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
+import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.ResetUsedQuestionsUseCase
 import org.neteinstein.family.domain.usecase.SetThemeModeUseCase
 
@@ -31,6 +34,9 @@ class SettingsViewModel(
     private val resetUsedQuestionsUseCase: ResetUsedQuestionsUseCase,
     private val getThemeModeUseCase: GetThemeModeUseCase,
     private val setThemeModeUseCase: SetThemeModeUseCase,
+    private val getQuestionsUseCase: GetQuestionsUseCase,
+    private val getUsedQuestionIdsUseCase: GetUsedQuestionIdsUseCase,
+    private val localeProvider: LocaleProvider,
     private val updatesEnabled: Boolean = true,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SettingsUiState(updatesEnabled = updatesEnabled))
@@ -45,6 +51,7 @@ class SettingsViewModel(
     }
 
     fun onScreenEntered() {
+        loadCardCounts()
         if (!updatesEnabled) return
         viewModelScope.launch {
             when (val result = checkForUpdateUseCase().getOrNull()) {
@@ -54,6 +61,16 @@ class SettingsViewModel(
                     _uiState.update { it.copy(updateStatus = UpdateStatus.UpdateAvailable(result.update)) }
                 null -> Unit
             }
+        }
+    }
+
+    /** Refreshes the "N of M hidden" count shown above the reset-cards button. */
+    private fun loadCardCounts() {
+        viewModelScope.launch {
+            val languageCode = localeProvider.currentLanguageCode()
+            val totalCardsCount = getQuestionsUseCase(languageCode).size
+            val hiddenCardsCount = getUsedQuestionIdsUseCase().size
+            _uiState.update { it.copy(totalCardsCount = totalCardsCount, hiddenCardsCount = hiddenCardsCount) }
         }
     }
 
@@ -95,7 +112,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(resetCardsStatus = ResetCardsStatus.Resetting) }
             resetUsedQuestionsUseCase()
-            _uiState.update { it.copy(resetCardsStatus = ResetCardsStatus.Done) }
+            _uiState.update { it.copy(resetCardsStatus = ResetCardsStatus.Done, hiddenCardsCount = 0) }
         }
     }
 

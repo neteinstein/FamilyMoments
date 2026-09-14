@@ -18,12 +18,17 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.neteinstein.family.domain.model.AppUpdate
+import org.neteinstein.family.domain.model.Question
+import org.neteinstein.family.domain.model.QuestionCategory
 import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.domain.model.UpdateCheckResult
 import org.neteinstein.family.domain.repository.AppUpdateInstaller
+import org.neteinstein.family.domain.repository.LocaleProvider
 import org.neteinstein.family.domain.usecase.CheckForUpdateUseCase
 import org.neteinstein.family.domain.usecase.DownloadAppUpdateUseCase
+import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
+import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.ResetUsedQuestionsUseCase
 import org.neteinstein.family.domain.usecase.SetThemeModeUseCase
 import java.io.File
@@ -38,8 +43,16 @@ class SettingsViewModelTest {
     private val themeModeFlow = MutableStateFlow(ThemeMode.SYSTEM)
     private val getThemeModeUseCase: GetThemeModeUseCase = mockk()
     private val setThemeModeUseCase: SetThemeModeUseCase = mockk(relaxUnitFun = true)
+    private val getQuestionsUseCase: GetQuestionsUseCase = mockk()
+    private val getUsedQuestionIdsUseCase: GetUsedQuestionIdsUseCase = mockk()
+    private val localeProvider: LocaleProvider = mockk()
 
     private val update = AppUpdate(versionName = "1.0.6", apkDownloadUrl = "https://example.com/app.apk")
+    private val questions =
+        listOf(
+            Question(id = 1, text = "Q1", languageCode = "en", category = QuestionCategory.IceBreakers),
+            Question(id = 2, text = "Q2", languageCode = "en", category = QuestionCategory.IceBreakers),
+        )
 
     private lateinit var viewModel: SettingsViewModel
 
@@ -47,6 +60,9 @@ class SettingsViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { getThemeModeUseCase() } returns themeModeFlow
+        every { localeProvider.currentLanguageCode() } returns "en"
+        coEvery { getQuestionsUseCase("en") } returns questions
+        coEvery { getUsedQuestionIdsUseCase() } returns emptySet()
         viewModel =
             SettingsViewModel(
                 checkForUpdateUseCase,
@@ -55,6 +71,9 @@ class SettingsViewModelTest {
                 resetUsedQuestionsUseCase,
                 getThemeModeUseCase,
                 setThemeModeUseCase,
+                getQuestionsUseCase,
+                getUsedQuestionIdsUseCase,
+                localeProvider,
             )
     }
 
@@ -164,6 +183,35 @@ class SettingsViewModelTest {
         }
 
     @Test
+    fun `onResetCardsClicked zeroes out the hidden cards count`() =
+        runTest {
+            coEvery { getUsedQuestionIdsUseCase() } returns setOf(1)
+            coEvery { resetUsedQuestionsUseCase() } returns Unit
+            coEvery { checkForUpdateUseCase() } returns Result.success(UpdateCheckResult.UpToDate("1.0.5"))
+            viewModel.onScreenEntered()
+            testDispatcher.scheduler.advanceUntilIdle()
+            assertEquals(1, viewModel.uiState.value.hiddenCardsCount)
+
+            viewModel.onResetCardsClicked()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(0, viewModel.uiState.value.hiddenCardsCount)
+        }
+
+    @Test
+    fun `onScreenEntered loads total and hidden card counts`() =
+        runTest {
+            coEvery { getUsedQuestionIdsUseCase() } returns setOf(1)
+            coEvery { checkForUpdateUseCase() } returns Result.success(UpdateCheckResult.UpToDate("1.0.5"))
+
+            viewModel.onScreenEntered()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(2, viewModel.uiState.value.totalCardsCount)
+            assertEquals(1, viewModel.uiState.value.hiddenCardsCount)
+        }
+
+    @Test
     fun `updatesEnabled defaults to true so the Updates section shows by default`() {
         assertTrue(viewModel.uiState.value.updatesEnabled)
     }
@@ -179,6 +227,9 @@ class SettingsViewModelTest {
                     resetUsedQuestionsUseCase,
                     getThemeModeUseCase,
                     setThemeModeUseCase,
+                    getQuestionsUseCase,
+                    getUsedQuestionIdsUseCase,
+                    localeProvider,
                     updatesEnabled = false,
                 )
 
