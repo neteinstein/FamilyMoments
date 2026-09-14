@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
                     ThemeMode.SYSTEM -> isSystemInDarkTheme()
                 }
 
-            FamilyMomentsTheme(darkTheme = darkTheme) {
+            FamilyMomentsTheme(darkTheme = darkTheme, dynamicColor = false) {
                 val navController = rememberNavController()
                 AppNavigation(navController = navController)
             }
