@@ -31,6 +31,16 @@ val SurfaceVariantLight = Color(0xFFF0E0CF)
 val OnSurfaceVariantLight = Color(0xFF4F4539)
 val OutlineLight = Color(0xFF817567)
 
+// Surface container tones (menus, sheets, elevated cards) - not part of Material3's minimal
+// lightColorScheme()/darkColorScheme() params, but left unset they fall back to the library's
+// default purple baseline instead of this app's warm palette (e.g. DropdownMenu reads
+// surfaceContainer). Stepped between BackgroundLight and SurfaceVariantLight.
+val SurfaceContainerLowestLight = Color(0xFFFFFFFF)
+val SurfaceContainerLowLight = Color(0xFFFFF1E5)
+val SurfaceContainerLight = Color(0xFFFCECDC)
+val SurfaceContainerHighLight = Color(0xFFF7E4CE)
+val SurfaceContainerHighestLight = Color(0xFFF1DCC0)
+
 // Dark palette
 val PrimaryDark = Color(0xFFFFB95A)
 val OnPrimaryDark = Color(0xFF652E00)
@@ -59,3 +69,11 @@ val OnSurfaceDark = Color(0xFFEDE0D4)
 val SurfaceVariantDark = Color(0xFF4F4539)
 val OnSurfaceVariantDark = Color(0xFFD3C3B2)
 val OutlineDark = Color(0xFF9C8E7D)
+
+// Surface container tones, dark counterpart of the light set above. Stepped between
+// BackgroundDark and SurfaceVariantDark.
+val SurfaceContainerLowestDark = Color(0xFF120D08)
+val SurfaceContainerLowDark = Color(0xFF1D160F)
+val SurfaceContainerDark = Color(0xFF221B13)
+val SurfaceContainerHighDark = Color(0xFF2D2419)
+val SurfaceContainerHighestDark = Color(0xFF383024)
