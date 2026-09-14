@@ -16,6 +16,7 @@
     <string name="settings_about_description">Aproximando famílias, uma pergunta de cada vez. ❤️</string>
     <string name="section_reset_cards">Redefinir Cartas</string>
     <string name="reset_cards_description">Cartas ocultas (deslizadas para baixo como já usadas ou indesejadas) ficam fora da rotação. Redefina para trazê-las todas de volta.</string>
+    <string name="reset_cards_hidden_count_format">%1$d de %2$d ocultas.</string>
     <string name="reset_cards_button">Redefinir Cartas</string>
     <string name="resetting_cards">Redefinindo cartas…</string>
     <string name="reset_cards_done">Todas as cartas estão visíveis novamente.</string>

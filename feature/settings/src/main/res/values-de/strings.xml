@@ -16,6 +16,7 @@
     <string name="settings_about_description">Familien näher zusammenbringen, eine Frage nach der anderen. ❤️</string>
     <string name="section_reset_cards">Karten Zurücksetzen</string>
     <string name="reset_cards_description">Ausgeblendete Karten (nach unten gewischt als bereits verwendet oder unerwünscht) bleiben außerhalb der Rotation. Setze sie zurück, um sie alle wiederzubekommen.</string>
+    <string name="reset_cards_hidden_count_format">%1$d von %2$d ausgeblendet.</string>
     <string name="reset_cards_button">Karten Zurücksetzen</string>
     <string name="resetting_cards">Karten werden zurückgesetzt…</string>
     <string name="reset_cards_done">Alle Karten sind wieder sichtbar.</string>

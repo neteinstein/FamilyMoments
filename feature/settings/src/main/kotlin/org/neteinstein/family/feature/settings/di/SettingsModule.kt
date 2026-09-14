@@ -7,5 +7,7 @@ import org.neteinstein.family.feature.settings.SettingsViewModel
 
 val settingsModule =
     module {
-        viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get(), get(named("updatesEnabled"))) }
+        viewModel {
+            SettingsViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named("updatesEnabled")))
+        }
     }

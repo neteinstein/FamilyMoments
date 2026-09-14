@@ -201,6 +201,8 @@ fun SettingsScreen(
                 ) {
                     ResetCardsSection(
                         status = uiState.resetCardsStatus,
+                        hiddenCardsCount = uiState.hiddenCardsCount,
+                        totalCardsCount = uiState.totalCardsCount,
                         onResetCardsClicked = { showResetConfirmDialog = true },
                     )
                 }
@@ -311,11 +313,15 @@ fun SettingsScreen(
 @Composable
 private fun ResetCardsSection(
     status: ResetCardsStatus,
+    hiddenCardsCount: Int,
+    totalCardsCount: Int,
     onResetCardsClicked: () -> Unit,
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
-            text = stringResource(R.string.reset_cards_description),
+            text =
+                stringResource(R.string.reset_cards_description) + " " +
+                    stringResource(R.string.reset_cards_hidden_count_format, hiddenCardsCount, totalCardsCount),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
