@@ -187,6 +187,7 @@ class SettingsViewModelTest {
         runTest {
             coEvery { getUsedQuestionIdsUseCase() } returns setOf(1)
             coEvery { resetUsedQuestionsUseCase() } returns Unit
+            coEvery { checkForUpdateUseCase() } returns Result.success(UpdateCheckResult.UpToDate("1.0.5"))
             viewModel.onScreenEntered()
             testDispatcher.scheduler.advanceUntilIdle()
             assertEquals(1, viewModel.uiState.value.hiddenCardsCount)
