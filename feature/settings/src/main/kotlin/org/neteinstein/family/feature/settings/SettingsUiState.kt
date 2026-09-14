@@ -1,10 +1,12 @@
 package org.neteinstein.family.feature.settings
 
 import org.neteinstein.family.domain.model.AppUpdate
+import org.neteinstein.family.domain.model.ThemeMode
 
 data class SettingsUiState(
     val updateStatus: UpdateStatus = UpdateStatus.Idle,
     val resetCardsStatus: ResetCardsStatus = ResetCardsStatus.Idle,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
     /** False on the Play Store flavor, which hides the "Updates" section entirely - see SettingsViewModel. */
     val updatesEnabled: Boolean = true,
 )

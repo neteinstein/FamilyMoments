@@ -2,6 +2,11 @@
     <string name="settings_title">Paramètres</string>
     <string name="cd_back">Retour</string>
     <string name="section_app_preferences">Préférences de l\'App</string>
+    <string name="settings_theme_title">Thème</string>
+    <string name="settings_theme_subtitle">Choisissez l\'apparence de l\'app</string>
+    <string name="settings_theme_system">Système</string>
+    <string name="settings_theme_light">Clair</string>
+    <string name="settings_theme_dark">Sombre</string>
     <string name="settings_language_title">Langue de l\'App</string>
     <string name="settings_language_subtitle">Changez la langue dans les paramètres Android</string>
     <string name="section_about">À propos</string>
