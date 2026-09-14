@@ -18,18 +18,25 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,6 +63,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
+import org.neteinstein.family.domain.model.ThemeMode
 
 private const val LOOPGAIN_URL = "https://loopgain.org"
 private const val PEDRO_VICENTE_URL = "https://pedrovicente.pt"
@@ -148,6 +156,13 @@ fun SettingsScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
+                    ThemeModeSelector(
+                        selected = uiState.themeMode,
+                        onThemeModeSelected = viewModel::onThemeModeSelected,
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
                     SettingsItem(
                         icon = {
                             Icon(
@@ -464,6 +479,65 @@ private fun AnnotatedString.Builder.addUrlLink(
 
 /** The installed build's version name (e.g. "1.2.3"), as shown in the "About" section. */
 private fun Context.currentVersionName(): String = packageManager.getPackageInfo(packageName, 0).versionName ?: "—"
+
+/** Lets the user force the app's appearance to light/dark, or follow the OS setting. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeModeSelector(
+    selected: ThemeMode,
+    onThemeModeSelected: (ThemeMode) -> Unit,
+) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(
+            text = stringResource(R.string.settings_theme_title),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.settings_theme_subtitle),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        val options = ThemeMode.entries
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            options.forEachIndexed { index, themeMode ->
+                val isSelected = themeMode == selected
+                SegmentedButton(
+                    selected = isSelected,
+                    onClick = { onThemeModeSelected(themeMode) },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                    icon = {
+                        SegmentedButtonDefaults.Icon(active = isSelected) {
+                            Icon(
+                                imageVector = themeMode.icon(),
+                                contentDescription = null,
+                                modifier = Modifier.size(SegmentedButtonDefaults.IconSize),
+                            )
+                        }
+                    },
+                    label = { Text(text = stringResource(themeMode.labelRes())) },
+                )
+            }
+        }
+    }
+}
+
+private fun ThemeMode.icon() =
+    when (this) {
+        ThemeMode.SYSTEM -> Icons.Default.BrightnessAuto
+        ThemeMode.LIGHT -> Icons.Default.LightMode
+        ThemeMode.DARK -> Icons.Default.DarkMode
+    }
+
+private fun ThemeMode.labelRes() =
+    when (this) {
+        ThemeMode.SYSTEM -> R.string.settings_theme_system
+        ThemeMode.LIGHT -> R.string.settings_theme_light
+        ThemeMode.DARK -> R.string.settings_theme_dark
+    }
 
 @Composable
 private fun SettingsItem(

@@ -8,11 +8,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.neteinstein.family.domain.model.AppUpdate
+import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.domain.model.UpdateCheckResult
 import org.neteinstein.family.domain.repository.AppUpdateInstaller
 import org.neteinstein.family.domain.usecase.CheckForUpdateUseCase
 import org.neteinstein.family.domain.usecase.DownloadAppUpdateUseCase
+import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
 import org.neteinstein.family.domain.usecase.ResetUsedQuestionsUseCase
+import org.neteinstein.family.domain.usecase.SetThemeModeUseCase
 
 /**
  * Runs a background update check when Settings is entered so the "Update to latest" button can
@@ -26,10 +29,20 @@ class SettingsViewModel(
     private val downloadAppUpdateUseCase: DownloadAppUpdateUseCase,
     private val appUpdateInstaller: AppUpdateInstaller,
     private val resetUsedQuestionsUseCase: ResetUsedQuestionsUseCase,
+    private val getThemeModeUseCase: GetThemeModeUseCase,
+    private val setThemeModeUseCase: SetThemeModeUseCase,
     private val updatesEnabled: Boolean = true,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SettingsUiState(updatesEnabled = updatesEnabled))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            getThemeModeUseCase().collect { themeMode ->
+                _uiState.update { it.copy(themeMode = themeMode) }
+            }
+        }
+    }
 
     fun onScreenEntered() {
         if (!updatesEnabled) return
@@ -41,6 +54,12 @@ class SettingsViewModel(
                     _uiState.update { it.copy(updateStatus = UpdateStatus.UpdateAvailable(result.update)) }
                 null -> Unit
             }
+        }
+    }
+
+    fun onThemeModeSelected(themeMode: ThemeMode) {
+        viewModelScope.launch {
+            setThemeModeUseCase(themeMode)
         }
     }
 
