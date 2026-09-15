@@ -20,7 +20,7 @@ ktlintGradle = "14.2.0"
 room = "2.8.4"
 datastore = "1.1.1"
 ksp = "2.3.11"
-robolectric = "4.16.1"
+robolectric = "4.17"
 pagerIndicator = "0.0.9"
 playPublisher = "4.1.1"
 
