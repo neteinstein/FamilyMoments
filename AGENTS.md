@@ -45,6 +45,24 @@ After the GitHub Release step, the workflow also runs `publishPlaystoreReleaseBu
 
 **Troubleshooting a `403 PERMISSION_DENIED` from `publishPlaystoreReleaseBundle`:** the request that fails is `POST .../applications/<applicationId>/edits` (the very first call Gradle Play Publisher makes, before it touches any track), so the cause is always the service account's standing in the Play Console, not this repo's Gradle config. Check, in order: (1) the service account (the `client_email` inside the `ANDROID_PUBLISHER_CREDENTIALS` JSON) has been invited as a user under Play Console → Users and permissions, with access to *this specific app* (not just "all apps" from a different app list) and the "Release to production, exclude devices, and use Play App Signing" permission (or at least a testing-track release permission); (2) a first release for `applicationId` (`app/build.gradle.kts`) has been uploaded manually through the Play Console — the API can only publish updates, never the initial listing; (3) the Google Play Android Developer API is enabled on the Google Cloud project the service account key belongs to; (4) a newly-granted permission can take a few hours to propagate on Google's side, so a re-run after a short wait can resolve it with no config change at all.
 
+### Store listing metadata
+
+`fastlane/metadata/android/<locale>/` holds the Play Store listing copy and graphics (`title.txt`,
+`short_description.txt`, `full_description.txt`, `changelogs/<versionCode>.txt`,
+`images/icon.png`, `images/featureGraphic.png`, `images/phoneScreenshots/`) in the standard
+[fastlane `supply` metadata layout](https://docs.fastlane.tools/actions/supply/#images-and-metadata),
+covering `en-US`, `pt-BR`, `es-ES`, `fr-FR`, and `de-DE`. This is edited by hand today; the
+Gradle Play Publisher plugin above reads its own, differently-structured `play/` metadata
+directory (see [its docs](https://github.com/Triple-T/gradle-play-publisher#directory-structure)),
+so populating `app/src/playstoreRelease/play/` from this folder — by script or by hand — is a
+prerequisite before listing changes here reach the Play Console automatically.
+`scripts/generate_store_assets.py` regenerates `images/icon.png` and `images/featureGraphic.png`
+straight from the launcher icon's vector paths and brand colors (`app/src/main/res/drawable/
+ic_launcher_foreground.xml`, `values/colors.xml`) — re-run it after either changes. The Play
+Console's required Privacy Policy URL should point at [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md) in
+this repo; a contact email still needs to be added under Play Console → Store settings, since none
+exists in this repo to source one from.
+
 The `github` flavor keeps an in-app self-update flow: the Settings screen's "Update to latest" button (`feature:settings`'s `SettingsViewModel`/`SettingsScreen`) checks `https://api.github.com/repos/neteinstein/FamilyMoments/releases/latest` (`core:data`'s `GitHubUpdateRepositoryImpl`), compares the tag against the installed `versionName` (`core:domain`'s `isNewerVersion`), and downloads/installs the APK asset via `AppUpdateInstallerImpl` (a `FileProvider`-backed install flow gated by the `REQUEST_INSTALL_PACKAGES` permission, the `FileProvider`, and `UpdateApkCleanupReceiver` — all declared only in `app/src/github/AndroidManifest.xml`, merged in for that flavor only). The `playstore` flavor has this feature stripped entirely: `app/build.gradle.kts` sets `BuildConfig.UPDATES_ENABLED = false` for it, wired via Koin as a named `"updatesEnabled"` boolean (`app/.../di/AppModule.kt` → `feature/settings/.../di/SettingsModule.kt`) into `SettingsViewModel`, which skips the update check entirely and drives `SettingsUiState.updatesEnabled = false` so `SettingsScreen` never renders the "Updates" section; the Play Store flavor's manifest carries none of the permission/provider/receiver above since they're only declared in the `github` source set.
 
 ### Obfuscation and shrinking

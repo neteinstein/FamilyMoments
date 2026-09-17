@@ -1,0 +1,33 @@
+Family Moments hands you one thoughtful conversation starter at a time — swipe through a deck
+of questions built to spark real conversation with the people you love. No accounts, no backend,
+nothing leaving your device.
+
+HOW IT WORKS
+Swipe right for the next card, left for the previous one, up to focus a card full screen, or down
+to hide a card you've already used (it stays out of rotation until you bring it back from
+Settings). Filter the deck by category, or shuffle straight to a random question. A grid view lays
+out every question in the current filter at a glance — tap any card to open it full screen.
+
+FIVE CATEGORIES
+🎉 Ice Breakers — light, easy openers for any gathering
+📸 Memories — questions that bring shared moments back to life
+❤️ Values — what matters most, and why
+🔮 Future Dreams — hopes, plans, and what's next
+🌻 Daily Life — the small everyday things worth talking about
+
+BUILT FOR REAL CONVERSATIONS, NOT JUST A DEMO
+• Hidden cards stay out of the deck until reset from Settings, so a family can work through the
+  whole set without repeats.
+• Question content ships in English, Portuguese, Spanish, French, and German; the app's own
+  interface is available in English and Portuguese, switchable anytime via Android's per-app
+  language setting.
+• Light, dark, and system theme.
+• No accounts, no sign-in, no ads, and no data ever leaves your device — everything is stored
+  locally.
+
+WHY THIS EXISTS
+The best family conversations rarely start on their own — someone has to ask the right question.
+Family Moments keeps a whole deck of them in your pocket, ready whenever there's a car ride, a
+dinner table, or a quiet evening to fill with something better than small talk.
+
+Family Moments is part of the LoopGain family of tools by Pedro Vicente.

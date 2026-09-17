@@ -1,0 +1,5 @@
+Première version. Faites défiler un jeu de cartes avec des questions pour converser, en cinq
+catégories — Brise-glace, Souvenirs, Valeurs, Rêves d'Avenir et Vie Quotidienne. Vue en grille,
+filtre par catégorie, mélange, et masquage/réinitialisation des cartes déjà utilisées. Interface
+en anglais et portugais, contenu en anglais, portugais, espagnol, français et allemand. Sans
+compte, rien ne quitte l'appareil.

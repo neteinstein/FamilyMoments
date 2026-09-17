@@ -1,0 +1,5 @@
+First release. Swipe through a deck of thoughtful conversation-starter cards across five
+categories — Ice Breakers, Memories, Values, Future Dreams, and Daily Life. Grid view, category
+filter, shuffle, and hide/reset for cards you've already used. English and Portuguese interface,
+content in English, Portuguese, Spanish, French, and German. No accounts, nothing leaves your
+device.
