@@ -108,7 +108,10 @@ fun FamilyMomentsLogo(modifier: Modifier = Modifier) {
 }
 
 /** Drifts an ember up and slightly sideways as it rises, fading and growing it out near the top. */
-private fun GraphicsLayerScope.driftEmber(progress: Float, baseAlpha: Float) {
+private fun GraphicsLayerScope.driftEmber(
+    progress: Float,
+    baseAlpha: Float,
+) {
     translationY = -size.height * 0.16f * progress
     translationX = size.width * 0.02f * progress
     alpha = baseAlpha * (1f - progress)
