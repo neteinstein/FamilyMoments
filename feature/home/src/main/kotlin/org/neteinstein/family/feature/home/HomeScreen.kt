@@ -495,6 +495,11 @@ private fun QuestionCard(
 ) {
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
+    // The front card's height is content-driven (varies with question text length), so the peek
+    // card behind it mirrors that measured height - otherwise, being centered with much shorter
+    // content of its own, it would sit entirely inside the front card's bounds and never show.
+    var frontCardHeightPx by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
     val cardRotation by animateFloatAsState(
         targetValue = offsetX * 0.04f,
         animationSpec = spring(stiffness = Spring.StiffnessLow),
@@ -526,6 +531,7 @@ private fun QuestionCard(
                 question = uiState.questions[peekIndex],
                 scale = peekScale,
                 offsetY = peekOffsetDp.dp,
+                height = if (frontCardHeightPx > 0) with(density) { frontCardHeightPx.toDp() } else Dp.Unspecified,
             )
         }
 
@@ -547,6 +553,7 @@ private fun QuestionCard(
                     Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp)
+                        .onGloballyPositioned { frontCardHeightPx = it.size.height }
                         .offset { IntOffset(0, cardOffsetY.roundToInt()) }
                         .rotate(cardRotation)
                         .pointerInput(Unit) {
@@ -657,6 +664,7 @@ private fun PeekCard(
     question: Question,
     scale: Float,
     offsetY: Dp,
+    height: Dp,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -664,6 +672,7 @@ private fun PeekCard(
             modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp)
+                .then(if (height != Dp.Unspecified) Modifier.height(height) else Modifier)
                 .offset(y = offsetY)
                 .scale(scale),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
