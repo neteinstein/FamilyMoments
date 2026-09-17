@@ -1,0 +1,5 @@
+Primeira versão. Deslize por um baralho de cartões com perguntas para conversar, em cinco
+categorias — Quebra-gelos, Memórias, Valores, Sonhos Futuros e Dia a Dia. Visualização em grade,
+filtro por categoria, embaralhar, e esconder/redefinir cartões já usados. Interface em inglês e
+português, conteúdo em inglês, português, espanhol, francês e alemão. Sem contas, nada sai do
+aparelho.

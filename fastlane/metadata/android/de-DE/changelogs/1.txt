@@ -1,0 +1,5 @@
+Erste Version. Wische durch ein Kartendeck mit Gesprächsfragen in fünf Kategorien — Eisbrecher,
+Erinnerungen, Werte, Zukunftsträume und Alltag. Rasteransicht, Kategoriefilter, Mischen sowie
+Ausblenden/Zurücksetzen bereits verwendeter Karten. Oberfläche auf Englisch und Portugiesisch,
+Inhalte auf Englisch, Portugiesisch, Spanisch, Französisch und Deutsch. Kein Konto, nichts
+verlässt das Gerät.

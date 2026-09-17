@@ -1,0 +1,5 @@
+Primera versión. Desliza por un mazo de tarjetas con preguntas para conversar, en cinco
+categorías — Rompehielos, Recuerdos, Valores, Sueños Futuros y Vida Diaria. Vista de cuadrícula,
+filtro por categoría, mezclar, y ocultar/restablecer tarjetas ya usadas. Interfaz en inglés y
+portugués, contenido en inglés, portugués, español, francés y alemán. Sin cuentas, nada sale del
+dispositivo.

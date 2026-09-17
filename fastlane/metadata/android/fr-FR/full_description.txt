@@ -1,0 +1,34 @@
+Family Moments vous propose une question à la fois — faites défiler un jeu de cartes pensé pour
+susciter de vraies conversations avec les personnes que vous aimez. Sans compte, sans serveur,
+rien ne quitte votre appareil.
+
+COMMENT ÇA MARCHE
+Glissez vers la droite pour la question suivante, vers la gauche pour la précédente, vers le haut
+pour l'afficher en plein écran, ou vers le bas pour masquer une carte déjà utilisée (elle reste
+hors rotation jusqu'à ce que vous la réactiviez depuis les Réglages). Filtrez le jeu par catégorie,
+ou mélangez pour tomber directement sur une question au hasard. La vue en grille affiche toutes
+les questions du filtre actuel d'un coup d'œil — touchez une carte pour l'ouvrir en plein écran.
+
+CINQ CATÉGORIES
+🎉 Brise-glace — des entrées en matière légères pour toute occasion
+📸 Souvenirs — des questions qui font revivre des moments partagés
+❤️ Valeurs — ce qui compte le plus, et pourquoi
+🔮 Rêves d'Avenir — espoirs, projets et ce qui vient ensuite
+🌻 Vie Quotidienne — les petites choses du quotidien qui méritent d'être racontées
+
+CONÇU POUR DE VRAIES CONVERSATIONS, PAS UNE SIMPLE DÉMO
+• Les cartes masquées restent hors du jeu jusqu'à leur réinitialisation depuis les Réglages, pour
+  qu'une famille puisse parcourir tout le jeu sans répétition.
+• Le contenu des questions est disponible en anglais, portugais, espagnol, français et allemand ;
+  l'interface de l'application est disponible en anglais et en portugais, modifiable à tout moment
+  via le sélecteur de langue par application d'Android.
+• Thème clair, sombre ou système.
+• Sans compte, sans connexion, sans publicité, et aucune donnée ne quitte jamais votre appareil —
+  tout est stocké localement.
+
+POURQUOI CETTE APPLICATION EXISTE
+Les meilleures conversations en famille démarrent rarement d'elles-mêmes — il faut que quelqu'un
+pose la bonne question. Family Moments en garde tout un jeu dans votre poche, prêt pour un trajet
+en voiture, un dîner ou une soirée tranquille qui mérite mieux que de la conversation superficielle.
+
+Family Moments fait partie de la famille d'outils LoopGain, par Pedro Vicente.
