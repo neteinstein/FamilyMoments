@@ -31,23 +31,19 @@
         android:fillColor="#8A7358"
         android:pathData="M71,52.14m-5.2,0a5.2,5.2 0,1 1,10.4 0a5.2,5.2 0,1 1,-10.4 0" />
 
-    <!-- Crossed logs -->
-    <group
-        android:pivotX="54"
-        android:pivotY="82"
-        android:rotation="-22">
-        <path
-            android:fillColor="#8A5A34"
-            android:pathData="M37.5,78.5 L70.5,78.5 A3.5,3.5 0 0 1 74,82 A3.5,3.5 0 0 1 70.5,85.5 L37.5,85.5 A3.5,3.5 0 0 1 34,82 A3.5,3.5 0 0 1 37.5,78.5 Z" />
-    </group>
-    <group
-        android:pivotX="54"
-        android:pivotY="82"
-        android:rotation="22">
-        <path
-            android:fillColor="#6F4526"
-            android:pathData="M37.5,78.5 L70.5,78.5 A3.5,3.5 0 0 1 74,82 A3.5,3.5 0 0 1 70.5,85.5 L37.5,85.5 A3.5,3.5 0 0 1 34,82 A3.5,3.5 0 0 1 37.5,78.5 Z" />
-    </group>
+    <!-- Logs, bent into an infinity loop (each path is one lobe of the lemniscate) -->
+    <path
+        android:strokeColor="#8A5A34"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M54,82 L57.902,78.556 L61.654,75.636 L65.111,73.685 L68.142,73 L70.630,73.685 L72.478,75.636 L73.616,78.556 L74,82 L73.616,85.444 L72.478,88.364 L70.630,90.315 L68.142,91 L65.111,90.315 L61.654,88.364 L57.902,85.444 L54,82" />
+    <path
+        android:strokeColor="#6F4526"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M54,82 L50.098,78.556 L46.346,75.636 L42.889,73.685 L39.858,73 L37.370,73.685 L35.522,75.636 L34.384,78.556 L34,82 L34.384,85.444 L35.522,88.364 L37.370,90.315 L39.858,91 L42.889,90.315 L46.346,88.364 L50.098,85.444 L54,82" />
 
     <!-- Front-row people -->
     <path
