@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     The lower/larger rising ember from the shared campfire mark, split out so the splash screen
+     can drift it upward and fade it independently of ic_campfire_ember_small.xml.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:fillColor="#FFD866"
+        android:fillAlpha="0.85"
+        android:pathData="M70,24m-2.6,0a2.6,2.6 0,1 1,5.2 0a2.6,2.6 0,1 1,-5.2 0" />
+</vector>

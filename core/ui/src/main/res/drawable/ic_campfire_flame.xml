@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Just the campfire flame (outer/mid/inner) from the shared campfire mark, so the splash screen
+     can flicker it - scale/skew/alpha - independently of the rest of the scene. Same viewport and
+     coordinates, so it lines up exactly when drawn over ic_campfire_scene_base.xml.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:fillColor="#D8471F"
+        android:pathData="M54,76 C37.5,67 35.4,50 47.4,39 C51,33 55.2,29 56.4,26 C54.6,33 59.4,42 63,51 C70.5,62 66.6,72 54,76 Z" />
+    <path
+        android:fillColor="#F08A3C"
+        android:pathData="M54,75 C42.78,67.98 41.35,54.72 49.51,46.14 C51.96,41.46 54.82,38.34 56.04,36 C54.41,41.46 57.67,48.48 60.12,55.5 C65.22,64.08 62.57,71.88 54,75 Z" />
+    <path
+        android:fillColor="#FFD866"
+        android:pathData="M54,74 C47.73,69.32 46.93,60.48 51.49,54.76 C52.86,51.64 54.46,49.56 55.48,48 C54.23,51.64 56.05,56.32 57.42,61 C60.27,66.72 58.79,71.92 54,74 Z" />
+</vector>
