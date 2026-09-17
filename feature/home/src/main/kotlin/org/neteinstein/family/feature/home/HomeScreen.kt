@@ -72,6 +72,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -81,6 +82,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -97,6 +99,10 @@ import kotlin.math.roundToInt
 private const val SWIPE_THRESHOLD = 100f
 private const val VERTICAL_SWIPE_THRESHOLD = 120f
 private const val MAX_VERTICAL_NUDGE = 140f
+private const val PEEK_REVEAL_RANGE = 300f
+private const val PEEK_MIN_SCALE = 0.90f
+private const val PEEK_MAX_SCALE = 0.96f
+private const val PEEK_MAX_OFFSET_DP = 18f
 
 @Composable
 fun HomeScreen(
@@ -489,6 +495,11 @@ private fun QuestionCard(
 ) {
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
+    // The front card's height is content-driven (varies with question text length), so the peek
+    // card behind it mirrors that measured height - otherwise, being centered with much shorter
+    // content of its own, it would sit entirely inside the front card's bounds and never show.
+    var frontCardHeightPx by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
     val cardRotation by animateFloatAsState(
         targetValue = offsetX * 0.04f,
         animationSpec = spring(stiffness = Spring.StiffnessLow),
@@ -504,6 +515,26 @@ private fun QuestionCard(
         modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
     ) {
+        // Peek of the next card in the stack, revealed underneath as the front card is dragged
+        // away - gives the deck visual depth instead of a single flat card floating in space.
+        if (uiState.questions.size > 1) {
+            val peekIndex =
+                if (offsetX > 0) {
+                    (uiState.currentIndex - 1 + uiState.questions.size) % uiState.questions.size
+                } else {
+                    (uiState.currentIndex + 1) % uiState.questions.size
+                }
+            val dragProgress = (abs(offsetX) / PEEK_REVEAL_RANGE).coerceIn(0f, 1f)
+            val peekScale = PEEK_MIN_SCALE + (PEEK_MAX_SCALE - PEEK_MIN_SCALE) * dragProgress
+            val peekOffsetDp = PEEK_MAX_OFFSET_DP * (1f - dragProgress)
+            PeekCard(
+                question = uiState.questions[peekIndex],
+                scale = peekScale,
+                offsetY = peekOffsetDp.dp,
+                height = if (frontCardHeightPx > 0) with(density) { frontCardHeightPx.toDp() } else Dp.Unspecified,
+            )
+        }
+
         AnimatedContent(
             targetState = uiState.currentQuestion,
             transitionSpec = {
@@ -522,6 +553,7 @@ private fun QuestionCard(
                     Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp)
+                        .onGloballyPositioned { frontCardHeightPx = it.size.height }
                         .offset { IntOffset(0, cardOffsetY.roundToInt()) }
                         .rotate(cardRotation)
                         .pointerInput(Unit) {
@@ -623,6 +655,47 @@ private fun QuestionCard(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PeekCard(
+    question: Question,
+    scale: Float,
+    offsetY: Dp,
+    height: Dp,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
+                .then(if (height != Dp.Unspecified) Modifier.height(height) else Modifier)
+                .offset(y = offsetY)
+                .scale(scale),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(24.dp),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush =
+                            Brush.linearGradient(
+                                colors =
+                                    listOf(
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f),
+                                    ),
+                            ),
+                    ).padding(32.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            CategoryPill(category = question.category)
         }
     }
 }
