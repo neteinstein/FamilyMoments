@@ -48,7 +48,10 @@ kotlin {
             implementation(compose.material3)
             // compose.material3/compose.foundation already pull in UI transitively; a direct
             // compose.ui accessor is deprecated in this Compose Multiplatform version.
-            implementation(compose.components.resources)
+            // compose.components.resources isn't added yet: nothing here references generated
+            // Res.* yet, and its resource-generator task emits generated Kotlin that ktlint then
+            // lints (and fails on) since nothing excludes app/build/generated from its scan - add
+            // it back, with that exclusion, once a later phase actually needs Compose resources.
             implementation(compose.components.uiToolingPreview)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
