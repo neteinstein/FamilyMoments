@@ -11,6 +11,8 @@ plugins {
     alias(libs.plugins.play.publisher) apply false
 }
 
-tasks.register("clean", Delete::class) {
-    delete(rootProject.layout.buildDirectory)
-}
+// No manual root "clean" task here (Android Studio's usual boilerplate) - `app`'s wasmJs target
+// pulls in Kotlin's Node.js/Yarn tooling plugin, which applies the `base` plugin (and its own
+// "clean" task) to the root project. A manually-registered "clean" here collides with that
+// ("Cannot add task 'clean' as a task with that name already exists"), so root cleaning is left
+// to the task that plugin now provides.
