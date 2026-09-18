@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
@@ -11,8 +13,8 @@ plugins {
 kotlin {
     jvmToolchain(17)
 
+    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "familymoments"
         browser {
             commonWebpackConfig {
                 outputFileName = "familymoments.js"
@@ -23,8 +25,9 @@ kotlin {
 
     sourceSets {
         wasmJsMain.dependencies {
+            // compose.ui comes in transitively via `app` (compose.material3/compose.foundation);
+            // no need to declare it again here (a direct `compose.ui` accessor is deprecated).
             implementation(projects.app)
-            implementation(compose.ui)
         }
     }
 }

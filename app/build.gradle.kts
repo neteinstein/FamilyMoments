@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -35,6 +36,7 @@ kotlin {
         }
     }
 
+    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
     }
@@ -44,7 +46,8 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
-            implementation(compose.ui)
+            // compose.material3/compose.foundation already pull in UI transitively; a direct
+            // compose.ui accessor is deprecated in this Compose Multiplatform version.
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.koin.core)
