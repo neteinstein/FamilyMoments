@@ -11,8 +11,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkOut
-import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
@@ -535,15 +536,21 @@ private fun QuestionCard(
             )
         }
 
+        // The incoming card grows in from the peek card's resting scale/position behind the
+        // outgoing one, instead of sliding in from off-screen, so it reads as the next card in
+        // the stack stepping forward rather than a new card flying in from the side.
+        val peekOffsetPx = with(density) { PEEK_MAX_OFFSET_DP.dp.roundToPx() }
         AnimatedContent(
             targetState = uiState.currentQuestion,
             transitionSpec = {
+                val enter =
+                    scaleIn(tween(350), initialScale = PEEK_MIN_SCALE) +
+                        slideInVertically(tween(350)) { peekOffsetPx } +
+                        fadeIn(tween(300))
                 if (swipeDirection <= 0) {
-                    (slideInHorizontally(tween(400)) { it } + fadeIn(tween(300))) togetherWith
-                        (slideOutHorizontally(tween(400)) { -it } + fadeOut(tween(300)))
+                    enter togetherWith (slideOutHorizontally(tween(400)) { -it } + fadeOut(tween(300)))
                 } else {
-                    (slideInHorizontally(tween(400)) { -it } + fadeIn(tween(300))) togetherWith
-                        (slideOutHorizontally(tween(400)) { it } + fadeOut(tween(300)))
+                    enter togetherWith (slideOutHorizontally(tween(400)) { it } + fadeOut(tween(300)))
                 }
             },
             label = "questionCard",
