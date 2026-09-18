@@ -67,13 +67,13 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
   # ─── Minified Release ───────────────────────────────────────────────────────
-  # `assembleDebug` above never runs R8, so a broken keep rule in app/proguard-rules.pro is
+  # `assembleDebug` above never runs R8, so a broken keep rule in androidApp/proguard-rules.pro is
   # invisible to it and would only surface in .github/workflows/release.yml, after the merge to
   # main. This job builds the same minified/obfuscated/resource-shrunk output the release
   # workflow does (both distribution flavors) and then asserts on R8's mapping file that
   # obfuscation actually happened and that the two names Room resolves reflectively survived it,
   # so a regression in the shrinker config fails the PR instead of the release.
-  # No signing secrets are needed: app/build.gradle.kts falls back to debug signing when
+  # No signing secrets are needed: androidApp/build.gradle.kts falls back to debug signing when
   # KEYSTORE_FILE is unset, and shrinking is identical either way.
   minified-release:
     name: Minified Release
@@ -110,7 +110,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: r8-mapping-files
-          path: app/build/outputs/mapping/*Release/
+          path: androidApp/build/outputs/mapping/*Release/
           # Not "error": this step runs with always(), so a build that failed before R8 ran has
           # nothing to upload and should report the build failure, not an artifact one.
           if-no-files-found: warn

@@ -4,8 +4,8 @@
 # app resolves reflectively survived it. Run after `./gradlew assembleRelease` (or
 # `assemble<Flavor>Release`); invoked by the "Minified Release" job in .github/workflows/pr.yml.
 #
-# Why this exists: `isMinifyEnabled`/`isShrinkResources` (app/build.gradle.kts) and the keep rules
-# in app/proguard-rules.pro can regress silently - a stray blanket `-keep`, or minification being
+# Why this exists: `isMinifyEnabled`/`isShrinkResources` (androidApp/build.gradle.kts) and the keep rules
+# in androidApp/proguard-rules.pro can regress silently - a stray blanket `-keep`, or minification being
 # switched off - and the build still succeeds, so only the mapping file shows what R8 actually
 # did. Reading it here turns "obfuscation is on and Room still resolves" into a PR gate.
 set -euo pipefail
@@ -14,7 +14,7 @@ readonly APP_PACKAGE_PREFIX="org.neteinstein.family."
 # Room appends "_Impl" to the runtime name of the class passed to Room.databaseBuilder(...) and
 # looks the result up with Class.forName (core/data/.../data/di/DataModule.kt), so renaming either
 # of these independently breaks the database at runtime. Pinned by the RoomDatabase keep rule in
-# app/proguard-rules.pro; asserted here because the failure is a runtime crash, not a build error.
+# androidApp/proguard-rules.pro; asserted here because the failure is a runtime crash, not a build error.
 readonly ROOM_KEPT_CLASSES=(
     "org.neteinstein.family.data.local.FamilyMomentsDatabase"
     "org.neteinstein.family.data.local.FamilyMomentsDatabase_Impl"
@@ -49,7 +49,7 @@ verify_mapping() {
     local renamed
     renamed="$(count_renamed_classes "$APP_PACKAGE_PREFIX" "$mapping")"
     if [ "$renamed" -eq 0 ]; then
-        fail "$variant: no ${APP_PACKAGE_PREFIX}* class was renamed - the release build is not obfuscated. Check isMinifyEnabled in app/build.gradle.kts and for an over-broad -keep in app/proguard-rules.pro."
+        fail "$variant: no ${APP_PACKAGE_PREFIX}* class was renamed - the release build is not obfuscated. Check isMinifyEnabled in androidApp/build.gradle.kts and for an over-broad -keep in androidApp/proguard-rules.pro."
     else
         echo "  $variant: $renamed obfuscated app classes"
     fi
@@ -59,7 +59,7 @@ verify_mapping() {
         if grep -qxF "$kept -> $kept:" "$mapping"; then
             echo "  $variant: kept $kept"
         else
-            fail "$variant: $kept was renamed or removed - Room's reflective Class.forName lookup will fail at runtime. Check the RoomDatabase keep rule in app/proguard-rules.pro."
+            fail "$variant: $kept was renamed or removed - Room's reflective Class.forName lookup will fail at runtime. Check the RoomDatabase keep rule in androidApp/proguard-rules.pro."
         fi
     done
 }
@@ -67,10 +67,10 @@ verify_mapping() {
 mappings=()
 while IFS= read -r line; do
     mappings+=("$line")
-done < <(find app/build/outputs/mapping -mindepth 2 -maxdepth 2 -name mapping.txt -path '*Release/*' | sort)
+done < <(find androidApp/build/outputs/mapping -mindepth 2 -maxdepth 2 -name mapping.txt -path '*Release/*' | sort)
 
 if [ ${#mappings[@]} -eq 0 ]; then
-    echo "::error::No release mapping.txt found under app/build/outputs/mapping/. Run './gradlew assembleRelease' first; if it did run, R8 produced no mapping, which means the build is not being minified."
+    echo "::error::No release mapping.txt found under androidApp/build/outputs/mapping/. Run './gradlew assembleRelease' first; if it did run, R8 produced no mapping, which means the build is not being minified."
     exit 1
 fi
 
