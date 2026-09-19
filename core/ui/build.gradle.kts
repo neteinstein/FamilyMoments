@@ -46,6 +46,12 @@ kotlin {
             // use Koin's koin-compose-viewmodel (koinViewModel()) instead, which is KMP-native.
             api(libs.lifecycle.runtime.compose)
         }
+        androidMain.dependencies {
+            // WindowCompat (PlatformTheme.android.kt's status-bar icon appearance actual) lives
+            // here - this module used to get it transitively as a classic android-library; the
+            // KMP android source set needs it declared directly.
+            implementation(libs.core.ktx)
+        }
     }
 }
 
