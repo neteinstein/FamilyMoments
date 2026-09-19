@@ -42,6 +42,16 @@ dependencyResolutionManagement {
             metadataSources { artifact() }
             content { includeModule("com.yarnpkg", "yarn") }
         }
+        // Same conflict, same fix, for the Binaryen (wasm optimizer) distribution
+        // :webApp:kotlinWasmBinaryenSetup downloads.
+        ivy("https://github.com/WebAssembly/binaryen/releases/download") {
+            name = "Binaryen Distributions at https://github.com/WebAssembly/binaryen/releases/download"
+            patternLayout {
+                artifact("version_[revision]/[artifact]-version_[revision]-[classifier].[ext]")
+            }
+            metadataSources { artifact() }
+            content { includeModule("com.github.webassembly", "binaryen") }
+        }
     }
 }
 
