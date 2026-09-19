@@ -16,8 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import org.neteinstein.family.ui.R
+import org.jetbrains.compose.resources.painterResource
+import org.neteinstein.family.ui.resources.Res
+import org.neteinstein.family.ui.resources.ic_campfire_ember_large
+import org.neteinstein.family.ui.resources.ic_campfire_ember_small
+import org.neteinstein.family.ui.resources.ic_campfire_flame
+import org.neteinstein.family.ui.resources.ic_campfire_scene_base
 
 /**
  * Renders the same campfire-scene artwork used by the launcher icon, so the splash screen matches
@@ -68,12 +72,12 @@ fun FamilyMomentsLogo(modifier: Modifier = Modifier) {
 
     Box(modifier = modifier) {
         Image(
-            painter = painterResource(id = R.drawable.ic_campfire_scene_base),
+            painter = painterResource(Res.drawable.ic_campfire_scene_base),
             contentDescription = null,
             modifier = Modifier.matchParentSize(),
         )
         Image(
-            painter = painterResource(id = R.drawable.ic_campfire_flame),
+            painter = painterResource(Res.drawable.ic_campfire_flame),
             contentDescription = null,
             modifier =
                 Modifier
@@ -89,7 +93,7 @@ fun FamilyMomentsLogo(modifier: Modifier = Modifier) {
                     },
         )
         Image(
-            painter = painterResource(id = R.drawable.ic_campfire_ember_large),
+            painter = painterResource(Res.drawable.ic_campfire_ember_large),
             contentDescription = null,
             modifier =
                 Modifier
@@ -97,7 +101,7 @@ fun FamilyMomentsLogo(modifier: Modifier = Modifier) {
                     .graphicsLayer { driftEmber(progress = emberLargeProgress, baseAlpha = 0.85f) },
         )
         Image(
-            painter = painterResource(id = R.drawable.ic_campfire_ember_small),
+            painter = painterResource(Res.drawable.ic_campfire_ember_small),
             contentDescription = null,
             modifier =
                 Modifier
