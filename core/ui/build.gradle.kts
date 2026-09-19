@@ -40,8 +40,11 @@ kotlin {
             api(compose.animation)
             api(compose.components.resources)
             api(compose.components.uiToolingPreview)
+            // lifecycle-viewmodel-compose (unlike lifecycle-runtime-compose above) only publishes
+            // Android/JVM variants as of 2.10.0 - no wasm-js artifact - so it can't sit on this
+            // module's commonMain api surface. Feature modules that need Compose-scoped ViewModels
+            // use Koin's koin-compose-viewmodel (koinViewModel()) instead, which is KMP-native.
             api(libs.lifecycle.runtime.compose)
-            api(libs.lifecycle.viewmodel.compose)
         }
     }
 }
