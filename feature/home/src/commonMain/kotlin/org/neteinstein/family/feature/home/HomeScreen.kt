@@ -1,6 +1,5 @@
 package org.neteinstein.family.feature.home
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -67,7 +66,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,7 +76,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -90,10 +87,36 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import mx.platacard.pagerindicator.PagerIndicator
-import org.koin.androidx.compose.koinViewModel
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import org.neteinstein.family.domain.model.Question
 import org.neteinstein.family.domain.model.QuestionCategory
+import org.neteinstein.family.feature.home.platform.PlatformBackHandler
+import org.neteinstein.family.feature.home.resources.Res
+import org.neteinstein.family.feature.home.resources.cancel
+import org.neteinstein.family.feature.home.resources.category_all
+import org.neteinstein.family.feature.home.resources.category_daily_life
+import org.neteinstein.family.feature.home.resources.category_future_dreams
+import org.neteinstein.family.feature.home.resources.category_ice_breakers
+import org.neteinstein.family.feature.home.resources.category_memories
+import org.neteinstein.family.feature.home.resources.category_values
+import org.neteinstein.family.feature.home.resources.cd_close
+import org.neteinstein.family.feature.home.resources.cd_filter_by_category
+import org.neteinstein.family.feature.home.resources.cd_settings
+import org.neteinstein.family.feature.home.resources.cd_shuffle_card
+import org.neteinstein.family.feature.home.resources.cd_switch_to_grid_view
+import org.neteinstein.family.feature.home.resources.cd_switch_to_swipe_view
+import org.neteinstein.family.feature.home.resources.hide_card_message
+import org.neteinstein.family.feature.home.resources.hide_card_title
+import org.neteinstein.family.feature.home.resources.home_app_name
+import org.neteinstein.family.feature.home.resources.home_no_cards_subtitle
+import org.neteinstein.family.feature.home.resources.home_no_cards_title
+import org.neteinstein.family.feature.home.resources.home_subtitle
+import org.neteinstein.family.feature.home.resources.home_swipe_hint
+import org.neteinstein.family.feature.home.resources.home_take_turns
+import org.neteinstein.family.feature.home.resources.home_vertical_swipe_hint
+import org.neteinstein.family.feature.home.resources.yes
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -126,7 +149,7 @@ fun HomeScreen(
         viewModel.onScreenEntered()
     }
 
-    BackHandler(enabled = fullScreenQuestion != null) { fullScreenQuestion = null }
+    PlatformBackHandler(enabled = fullScreenQuestion != null) { fullScreenQuestion = null }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -171,13 +194,13 @@ fun HomeScreen(
                 // Subtitle
                 if (!isGridView) {
                     Text(
-                        text = stringResource(R.string.home_swipe_hint),
+                        text = stringResource(Res.string.home_swipe_hint),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        text = stringResource(R.string.home_vertical_swipe_hint),
+                        text = stringResource(Res.string.home_vertical_swipe_hint),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -260,7 +283,7 @@ fun HomeScreen(
                     imageVector = if (isGridView) Icons.Default.ViewCarousel else Icons.Default.GridView,
                     contentDescription =
                         stringResource(
-                            if (isGridView) R.string.cd_switch_to_swipe_view else R.string.cd_switch_to_grid_view,
+                            if (isGridView) Res.string.cd_switch_to_swipe_view else Res.string.cd_switch_to_grid_view,
                         ),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -295,8 +318,8 @@ fun HomeScreen(
     if (showHideConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showHideConfirmDialog = false },
-            title = { Text(stringResource(R.string.hide_card_title)) },
-            text = { Text(stringResource(R.string.hide_card_message)) },
+            title = { Text(stringResource(Res.string.hide_card_title)) },
+            text = { Text(stringResource(Res.string.hide_card_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -304,12 +327,12 @@ fun HomeScreen(
                         viewModel.markCurrentQuestionAsUsed()
                     },
                 ) {
-                    Text(stringResource(R.string.yes))
+                    Text(stringResource(Res.string.yes))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showHideConfirmDialog = false }) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(Res.string.cancel))
                 }
             },
         )
@@ -359,7 +382,7 @@ private fun FullScreenQuestion(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.cd_close),
+                    contentDescription = stringResource(Res.string.cd_close),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -378,7 +401,7 @@ private fun FullScreenQuestion(
             ) {
                 Icon(
                     imageVector = Icons.Default.Casino,
-                    contentDescription = stringResource(R.string.cd_shuffle_card),
+                    contentDescription = stringResource(Res.string.cd_shuffle_card),
                     tint =
                         if (randomEnabled) {
                             MaterialTheme.colorScheme.onSurfaceVariant
@@ -434,13 +457,13 @@ private fun HomeTopBar(
     ) {
         Column {
             Text(
-                text = stringResource(R.string.home_app_name),
+                text = stringResource(Res.string.home_app_name),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
             Text(
-                text = stringResource(R.string.home_subtitle),
+                text = stringResource(Res.string.home_subtitle),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -457,7 +480,7 @@ private fun HomeTopBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Casino,
-                    contentDescription = stringResource(R.string.cd_shuffle_card),
+                    contentDescription = stringResource(Res.string.cd_shuffle_card),
                     tint =
                         if (shuffleEnabled) {
                             MaterialTheme.colorScheme.onSurfaceVariant
@@ -476,7 +499,7 @@ private fun HomeTopBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = stringResource(R.string.cd_settings),
+                    contentDescription = stringResource(Res.string.cd_settings),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -621,7 +644,7 @@ private fun QuestionCard(
                             )
                             Spacer(modifier = Modifier.height(24.dp))
                             Text(
-                                text = stringResource(R.string.home_no_cards_title),
+                                text = stringResource(Res.string.home_no_cards_title),
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Medium,
                                 textAlign = TextAlign.Center,
@@ -629,7 +652,7 @@ private fun QuestionCard(
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = stringResource(R.string.home_no_cards_subtitle),
+                                text = stringResource(Res.string.home_no_cards_subtitle),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
@@ -652,7 +675,7 @@ private fun QuestionCard(
                             )
                             Spacer(modifier = Modifier.height(32.dp))
                             Text(
-                                text = stringResource(R.string.home_take_turns),
+                                text = stringResource(Res.string.home_take_turns),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontStyle = FontStyle.Italic,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -725,7 +748,7 @@ private fun QuestionGrid(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = stringResource(R.string.home_no_cards_title),
+                    text = stringResource(Res.string.home_no_cards_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
@@ -733,7 +756,7 @@ private fun QuestionGrid(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = stringResource(R.string.home_no_cards_subtitle),
+                    text = stringResource(Res.string.home_no_cards_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -808,14 +831,14 @@ private fun GridQuestionCard(
     }
 }
 
-private fun categoryLabelRes(category: QuestionCategory): Int =
+private fun categoryLabelRes(category: QuestionCategory): StringResource =
     when (category) {
-        is QuestionCategory.IceBreakers -> R.string.category_ice_breakers
-        is QuestionCategory.Memories -> R.string.category_memories
-        is QuestionCategory.Values -> R.string.category_values
-        is QuestionCategory.FutureDreams -> R.string.category_future_dreams
-        is QuestionCategory.DailyLife -> R.string.category_daily_life
-        else -> R.string.category_ice_breakers
+        is QuestionCategory.IceBreakers -> Res.string.category_ice_breakers
+        is QuestionCategory.Memories -> Res.string.category_memories
+        is QuestionCategory.Values -> Res.string.category_values
+        is QuestionCategory.FutureDreams -> Res.string.category_future_dreams
+        is QuestionCategory.DailyLife -> Res.string.category_daily_life
+        else -> Res.string.category_ice_breakers
     }
 
 @Composable
@@ -851,7 +874,7 @@ private fun CategoryDropdown(
     var expanded by remember { mutableStateOf(false) }
     var anchorHeightPx by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
-    val allLabel = stringResource(R.string.category_all)
+    val allLabel = stringResource(Res.string.category_all)
     // Deliberately unrolled instead of looping over QuestionCategory.all: calling a @Composable
     // function with an argument sourced from a loop/forEach/map variable reproducibly corrupted
     // that argument under this project's exact Kotlin/Compose compiler version (see git history
@@ -885,7 +908,7 @@ private fun CategoryDropdown(
             )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
-                contentDescription = stringResource(R.string.cd_filter_by_category),
+                contentDescription = stringResource(Res.string.cd_filter_by_category),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -916,9 +939,14 @@ private fun CategoryDropdown(
 }
 
 // Capped so a category with many cards doesn't lay out (and re-measure on every swipe) an
-// unbounded row of dots - mx.platacard's PagerIndicator windows dotCount dots around the
-// current page, so this stays a small fixed-size row no matter how large total gets.
+// unbounded row of dots - this windows dotCount dots around the current page, so this stays a
+// small fixed-size row no matter how large total gets. Hand-rolled with Compose Foundation
+// (rather than mx.platacard:compose-pager-indicator, which this screen used pre-KMP-migration)
+// since that library is Android-only Jetpack Compose, not Compose Multiplatform.
 private const val MAX_VISIBLE_DOTS = 7
+private val ACTIVE_DOT_SIZE = 8.dp
+private val INACTIVE_DOT_SIZE = 6.dp
+private val DOT_SPACING = 6.dp
 
 @Composable
 private fun ProgressDots(
@@ -928,15 +956,32 @@ private fun ProgressDots(
 ) {
     if (total <= 0) return
     // The deck loops through every card in the category (nextQuestion/previousQuestion wrap via
-    // modulo), so the indicator's page count/fraction are derived from the wrapped index rather
+    // modulo), so the indicator's current-dot index is derived from the wrapped index rather
     // than the raw, ever-increasing current.
     val visibleIndex = current % total
-    PagerIndicator(
-        pageCount = total,
-        currentPageFraction = rememberUpdatedState(visibleIndex.toFloat()),
-        activeDotColor = MaterialTheme.colorScheme.primary,
-        dotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-        dotCount = minOf(total, MAX_VISIBLE_DOTS),
+    val dotCount = minOf(total, MAX_VISIBLE_DOTS)
+    val windowStart = (visibleIndex - dotCount / 2).coerceIn(0, (total - dotCount).coerceAtLeast(0))
+
+    Row(
         modifier = modifier,
-    )
+        horizontalArrangement = Arrangement.spacedBy(DOT_SPACING),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(dotCount) { offset ->
+            val isActive = windowStart + offset == visibleIndex
+            Box(
+                modifier =
+                    Modifier
+                        .size(if (isActive) ACTIVE_DOT_SIZE else INACTIVE_DOT_SIZE)
+                        .clip(CircleShape)
+                        .background(
+                            if (isActive) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                            },
+                        ),
+            )
+        }
+    }
 }
