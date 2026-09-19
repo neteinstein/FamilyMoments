@@ -15,15 +15,24 @@ pluginManagement {
 dependencyResolutionManagement {
     // PREFER_SETTINGS rather than FAIL_ON_PROJECT_REPOS: the Kotlin Gradle plugin's wasmJs/JS
     // Node.js setup (:kotlinWasmNodeJsSetup) registers its own repository (nodejs.org/dist) to
-    // download the Node.js distribution, which FAIL_ON_PROJECT_REPOS rejects outright ("Could not
-    // determine the dependencies of task ':kotlinWasmNodeJsSetup' ... repository ... was added by
-    // unknown code"). PREFER_SETTINGS still prefers the repositories declared here for anything
-    // they can resolve, while allowing a plugin-added repository like this one through instead of
-    // hard-failing the build.
+    // download the Node.js distribution, which FAIL_ON_PROJECT_REPOS rejects outright. Switching
+    // to PREFER_SETTINGS alone wasn't enough - the detached configuration that plugin resolves
+    // through doesn't fall back to a project-added repository under either mode - so the Node.js
+    // distribution repository is declared here directly instead, matching the standard workaround
+    // for this well-known Kotlin/JS+Wasm + centralized-repository-management conflict (see
+    // https://youtrack.jetbrains.com/issue/KT-52626).
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()
+        ivy("https://nodejs.org/dist/") {
+            name = "Node Distributions at https://nodejs.org/dist"
+            patternLayout {
+                artifact("v[revision]/[artifact](-v[revision]-[classifier]).[ext]")
+            }
+            metadataSources { artifact() }
+            content { includeModule("org.nodejs", "node") }
+        }
     }
 }
 
