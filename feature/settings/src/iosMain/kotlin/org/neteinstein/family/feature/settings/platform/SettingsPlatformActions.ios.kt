@@ -7,5 +7,7 @@ import platform.Foundation.NSBundle
 actual fun rememberOpenLanguageSettingsAction(): () -> Unit = {}
 
 @Composable
-actual fun rememberCurrentVersionName(): String =
-    (NSBundle.mainBundle.infoDictionary?.get("CFBundleShortVersionString") as? String) ?: "—"
+actual fun rememberCurrentVersionName(): String {
+    val versionKey = "CFBundleShortVersionString"
+    return (NSBundle.mainBundle.infoDictionary?.get(versionKey) as? String) ?: "—"
+}
