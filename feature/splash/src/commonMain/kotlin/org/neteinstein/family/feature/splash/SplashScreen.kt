@@ -24,10 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
+import org.neteinstein.family.feature.splash.resources.Res
+import org.neteinstein.family.feature.splash.resources.splash_app_name
+import org.neteinstein.family.feature.splash.resources.splash_loopgain_footer
+import org.neteinstein.family.feature.splash.resources.splash_tagline
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
@@ -84,7 +88,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = stringResource(R.string.splash_app_name),
+                text = stringResource(Res.string.splash_app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -92,7 +96,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(R.string.splash_tagline),
+                text = stringResource(Res.string.splash_tagline),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.alpha(textAlpha.value),
@@ -100,7 +104,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
         }
 
         Text(
-            text = stringResource(R.string.splash_loopgain_footer),
+            text = stringResource(Res.string.splash_loopgain_footer),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier =
