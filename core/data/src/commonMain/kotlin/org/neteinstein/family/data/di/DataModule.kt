@@ -14,6 +14,9 @@ import org.neteinstein.family.domain.repository.LocaleProvider
 import org.neteinstein.family.domain.repository.QuestionRepository
 import org.neteinstein.family.domain.repository.ThemePreferenceRepository
 import org.neteinstein.family.domain.repository.UsedQuestionsRepository
+import org.neteinstein.family.domain.usecase.CheckForUpdateUseCase
+import org.neteinstein.family.domain.usecase.ClearDownloadedUpdateUseCase
+import org.neteinstein.family.domain.usecase.DownloadAppUpdateUseCase
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetRandomQuestionUseCase
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
@@ -23,8 +26,9 @@ import org.neteinstein.family.domain.usecase.ResetUsedQuestionsUseCase
 import org.neteinstein.family.domain.usecase.SetThemeModeUseCase
 
 /**
- * The GitHub self-update feature (Android-only - APK sideloading has no iOS/Web equivalent) is
- * registered by [platformUpdateModule] instead of living here - see each target's actual.
+ * The concrete GitHub self-update implementation (Android-only - APK sideloading has no iOS/Web
+ * equivalent) is registered by [platformUpdateModule] instead of living here - see each target's
+ * actual. The use cases wrapping it are common code, so they're registered below like any other.
  */
 val dataModule =
     module {
@@ -41,6 +45,9 @@ val dataModule =
         factory { GetUsedQuestionIdsUseCase(get()) }
         factory { MarkQuestionUsedUseCase(get()) }
         factory { ResetUsedQuestionsUseCase(get()) }
+        factory { CheckForUpdateUseCase(get()) }
+        factory { DownloadAppUpdateUseCase(get()) }
+        factory { ClearDownloadedUpdateUseCase(get()) }
 
         includes(platformUpdateModule)
     }

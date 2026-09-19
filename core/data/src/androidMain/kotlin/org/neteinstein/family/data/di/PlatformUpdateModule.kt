@@ -6,15 +6,13 @@ import org.neteinstein.family.data.installer.AppUpdateInstallerImpl
 import org.neteinstein.family.data.repository.GitHubUpdateRepositoryImpl
 import org.neteinstein.family.domain.repository.AppUpdateInstaller
 import org.neteinstein.family.domain.repository.UpdateRepository
-import org.neteinstein.family.domain.usecase.CheckForUpdateUseCase
-import org.neteinstein.family.domain.usecase.ClearDownloadedUpdateUseCase
-import org.neteinstein.family.domain.usecase.DownloadAppUpdateUseCase
 
+// The use cases wrapping UpdateRepository/AppUpdateInstaller are common code (see
+// core:domain's CheckForUpdateUseCase et al.) and registered once in the shared dataModule -
+// only the concrete GitHub-releases-backed/Android-Context-backed implementations are
+// platform-specific.
 actual val platformUpdateModule: Module =
     module {
         single<UpdateRepository> { GitHubUpdateRepositoryImpl() }
         single<AppUpdateInstaller> { AppUpdateInstallerImpl() }
-        factory { CheckForUpdateUseCase(get()) }
-        factory { DownloadAppUpdateUseCase(get()) }
-        factory { ClearDownloadedUpdateUseCase(get()) }
     }

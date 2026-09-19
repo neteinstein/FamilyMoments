@@ -8,10 +8,10 @@ plugins {
 }
 
 // Pure Kotlin domain layer (models, repository interfaces, use cases) - see AGENTS.md's KMP
-// migration section. The GitHub self-update feature (java.io.File-backed, Android-only - APK
-// sideloading has no iOS/Web equivalent) lives in androidMain rather than commonMain; everything
-// else here was already pure Kotlin before this conversion and needed no code changes, only a
-// move into commonMain.
+// migration section. The GitHub self-update feature (Android-only - APK sideloading has no
+// iOS/Web equivalent) is common code too, aside from PlatformFile's `java.io.File` actual
+// (androidMain) - the interfaces/use cases are shared, only the concrete
+// UpdateRepository/AppUpdateInstaller implementations differ per platform (core:data).
 kotlin {
     jvmToolchain(17)
 
