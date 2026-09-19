@@ -30,6 +30,11 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core:ui"))
+            // Declared directly (not just inherited transitively via core:ui's `api`) because the
+            // Compose resource generator only wires up generation for this module's own
+            // composeResources/ (values/strings.xml below) when the module declares this itself -
+            // core:ui's equivalent declaration only activates generation for core:ui's resources.
+            implementation(compose.components.resources)
         }
     }
 }
