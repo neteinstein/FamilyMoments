@@ -14,15 +14,21 @@ Family Moments is an Android app that helps families spark meaningful conversati
 
 ```bash
 ./gradlew assembleDebug                  # compile (mirrors CI "Compile" job)
-./gradlew testDebugUnitTest              # run all unit tests (mirrors CI "Unit Tests" job)
+./gradlew testDebugUnitTest testHostTestUnitTest  # run all unit tests (mirrors CI "Unit Tests" job)
 ./gradlew createDebugUnitTestCoverageReport  # run tests + generate AGP built-in coverage reports (mirrors CI "Code Coverage" job)
 ./gradlew assembleRelease && ./scripts/verify-obfuscation.sh  # build + check the minified/obfuscated release (mirrors CI "Minified Release" job)
 ```
 
+> **KMP migration note:** modules already converted to Kotlin Multiplatform (`core:domain`, `core:data`,
+> `core:ui`, `feature:splash`, `feature:settings`) run their JVM/Android unit tests (both `commonTest`
+> and the `androidHostTest` source set) under `testHostTestUnitTest`, not `testDebugUnitTest` - that
+> classic-android-library task only still applies to modules not yet converted (`feature:home`,
+> `androidApp`). Run both together to cover everything, as CI does.
+
 Run tests for a single module:
 ```bash
-./gradlew :feature:home:testDebugUnitTest
-./gradlew :core:domain:testDebugUnitTest
+./gradlew :feature:home:testDebugUnitTest      # not yet KMP-converted
+./gradlew :core:domain:testHostTestUnitTest    # KMP-converted
 ```
 
 Run a single test class or method (`--tests` works with any of the module targets above):
@@ -83,10 +89,23 @@ Obfuscated stack traces need the matching mapping file, and R8 emits a different
 
 ## Architecture
 
+> **KMP migration in progress** (`kmp` branch, not yet merged to `main`): this repo is being
+> migrated to Kotlin Multiplatform + Compose Multiplatform, targeting Android + iOS + Web (wasmJs),
+> following the pattern in `neteinstein/loopgain`. The module table and conventions below describe
+> the pre-migration, Android-only state and are being updated module-by-module as the migration
+> proceeds — see the plan this migration follows for the target module graph and phasing. Until the
+> migration reaches `feature:*`, everything below remains accurate for the still fully-functional
+> `androidApp` module (renamed from `app`, otherwise unchanged).
+
 Gradle multi-module project, wired via `settings.gradle.kts`:
 
 ```
-app                 # entry point: MainActivity, Application class, Koin DI wiring, navigation graph
+app                 # (mid-migration) KMP aggregator module - commonMain App()/DI/navigation once
+                     # core/feature modules are converted; currently a placeholder scaffold only.
+androidApp          # entry point: MainActivity, Application class, Koin DI wiring, navigation graph
+                     # (renamed from `app`; unchanged otherwise - still the real, shipping app)
+iosApp              # (new) Xcode project wrapper, no Gradle build file
+webApp              # (new) wasmJs entry point
 core/domain         # pure Kotlin: models, repository interfaces, use cases — no Android/Compose deps
 core/data           # repository implementations + data sources, depends on core:domain
 core/ui             # shared Compose theme (Color/Theme/Typography), exposes Compose libs via `api`
