@@ -56,7 +56,10 @@ kotlin {
                 implementation(libs.koin.test.junit4)
                 implementation(libs.robolectric)
                 implementation(libs.junit.ext)
-                implementation(platform(libs.compose.bom))
+                // KotlinDependencyHandler (this block's receiver) has no platform() shorthand of
+                // its own, unlike a classic dependencies {} block - go through project.dependencies
+                // directly to get Gradle's BOM/platform semantics.
+                implementation(project.dependencies.platform(libs.compose.bom))
                 implementation(libs.compose.ui.test.junit4)
                 implementation(libs.compose.ui.test.manifest)
             }
