@@ -19,13 +19,17 @@ Family Moments is an Android app that helps families spark meaningful conversati
 ./gradlew assembleRelease && ./scripts/verify-obfuscation.sh  # build + check the minified/obfuscated release (mirrors CI "Minified Release" job)
 ```
 
-> **KMP migration note:** modules already converted to Kotlin Multiplatform (`core:domain`, `core:data`,
-> `core:ui`, `feature:splash`, `feature:settings`) run their JVM/Android unit tests (the
-> `androidHostTest` source set) under `testAndroidHostTest`, not `testDebugUnitTest` - that
-> classic-android-library task only still applies to modules not yet converted (`feature:home`,
-> `androidApp`). Run both together to cover everything, as CI does. The Code Coverage job's
-> `createDebugUnitTestCoverageReport` task has no equivalent wired up yet for these modules (it's
-> classic-android-library-only DSL) - a gap still open for Phase 8 of the KMP migration.
+> **KMP migration note:** modules already converted to Kotlin Multiplatform (`core:domain`,
+> `core:data`, `core:ui`, `feature:splash`, `feature:settings`, `feature:home`) run their
+> JVM/Android unit tests (the `androidHostTest` source set) under `testAndroidHostTest`, not
+> `testDebugUnitTest` - that classic-android-library task only still applies to `androidApp`, the
+> one module not yet converted. Run both together to cover everything, as CI does.
+> `createDebugUnitTestCoverageReport` (the Code Coverage job's task) has no KMP equivalent wired up
+> yet, and stopped existing anywhere in the build once the last classic-android-library module with
+> `buildTypes { debug { enableUnitTestCoverage = true } }` (`feature:home`) converted - `androidApp`
+> now carries that flag purely so the task still exists (it has no unit tests of its own yet, so
+> this produces an essentially empty report). Real per-module coverage for the KMP modules is a
+> Phase 8 follow-up.
 
 Run tests for a single module:
 ```bash

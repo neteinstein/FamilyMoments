@@ -71,6 +71,14 @@ android {
     buildTypes {
         debug {
             isDebuggable = true
+            // The only module left with this classic android-application/-library DSL now that
+            // every other module (core:*, feature:*) has converted to a KMP android-library, which
+            // has no equivalent yet (see AGENTS.md's KMP migration note) - without this, CI's Code
+            // Coverage job's createDebugUnitTestCoverageReport task doesn't exist anywhere in the
+            // build at all. androidApp itself has no unit tests of its own yet, so this produces an
+            // essentially empty report for now; real per-module coverage for the KMP modules is a
+            // Phase 8 follow-up.
+            enableUnitTestCoverage = true
         }
         release {
             // R8 runs in full mode (android.enableR8.fullMode in gradle.properties) over both
