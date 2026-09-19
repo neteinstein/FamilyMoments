@@ -6,7 +6,7 @@ import org.neteinstein.family.domain.model.Question
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-private class FakeQuestionLocalDataSource : QuestionLocalDataSource {
+private class FakeUsedQuestionsLocalDataSource : QuestionLocalDataSource {
     var hiddenIds: Set<Int> = emptySet()
     var lastMarkedHiddenId: Int? = null
     var resetAllHiddenCallCount = 0
@@ -35,7 +35,7 @@ private class FakeQuestionLocalDataSource : QuestionLocalDataSource {
 }
 
 class UsedQuestionsRepositoryImplTest {
-    private val localDataSource = FakeQuestionLocalDataSource()
+    private val localDataSource = FakeUsedQuestionsLocalDataSource()
     private val repository = UsedQuestionsRepositoryImpl(localDataSource)
 
     @Test
