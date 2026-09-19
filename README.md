@@ -100,3 +100,10 @@ boundaries, and testing conventions, and the PR template for what to include.
 This repo defines five specialized agent roles — Developer, QA, Architect, Security Manager, and
 Product Manager — usable as Claude Code subagents and GitHub Copilot custom agents alike. See
 [`docs/agents/README.md`](docs/agents/README.md) for the full orchestration model.
+
+## License
+
+Copyright (c) 2026 Pedro Vicente. All rights reserved. This is source-available, not open-source:
+the code is public for viewing and reference, but using, copying, modifying, or redistributing it
+(commercially or otherwise) requires the copyright holder's prior written permission. See
+[`LICENSE`](LICENSE) for the full terms.
