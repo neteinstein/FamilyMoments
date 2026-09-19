@@ -185,8 +185,12 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      # androidApp is the only module left with this task (every core:*/feature:* module is now a
+      # KMP android-library, which has no coverage-report equivalent yet - see AGENTS.md's KMP
+      # migration note) - and it builds two flavors, so the plain "Debug" task name is ambiguous;
+      # pin to one (github, the flavor this project treats as primary elsewhere).
       - name: Run tests with coverage
-        run: ./gradlew createDebugUnitTestCoverageReport --no-daemon --stacktrace
+        run: ./gradlew createGithubDebugUnitTestCoverageReport --no-daemon --stacktrace
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -197,6 +201,6 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6
         with:
-          files: '**/build/reports/coverage/test/debug/report.xml'
+          files: '**/build/reports/coverage/test/githubDebug/report.xml'
           fail_ci_if_error: false
           verbose: true

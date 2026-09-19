@@ -15,7 +15,7 @@ Family Moments is an Android app that helps families spark meaningful conversati
 ```bash
 ./gradlew assembleDebug                  # compile (mirrors CI "Compile" job)
 ./gradlew testDebugUnitTest testAndroidHostTest  # run all unit tests (mirrors CI "Unit Tests" job)
-./gradlew createDebugUnitTestCoverageReport  # run tests + generate AGP built-in coverage reports (mirrors CI "Code Coverage" job)
+./gradlew createGithubDebugUnitTestCoverageReport  # run tests + generate AGP built-in coverage reports (mirrors CI "Code Coverage" job)
 ./gradlew assembleRelease && ./scripts/verify-obfuscation.sh  # build + check the minified/obfuscated release (mirrors CI "Minified Release" job)
 ```
 
@@ -28,24 +28,27 @@ Family Moments is an Android app that helps families spark meaningful conversati
 > yet, and stopped existing anywhere in the build once the last classic-android-library module with
 > `buildTypes { debug { enableUnitTestCoverage = true } }` (`feature:home`) converted - `androidApp`
 > now carries that flag purely so the task still exists (it has no unit tests of its own yet, so
-> this produces an essentially empty report). Real per-module coverage for the KMP modules is a
-> Phase 8 follow-up.
+> this produces an essentially empty report). Because `androidApp` builds two flavors
+> (`github`/`playstore`), the task name is flavor-scoped
+> (`createGithubDebugUnitTestCoverageReport`/`createPlaystoreDebugUnitTestCoverageReport`) rather
+> than the plain `createDebugUnitTestCoverageReport` - CI pins to `github`. Real per-module coverage
+> for the KMP modules is a Phase 8 follow-up.
 
 Run tests for a single module:
 ```bash
-./gradlew :feature:home:testDebugUnitTest      # not yet KMP-converted
-./gradlew :core:domain:testAndroidHostTest     # KMP-converted
+./gradlew :androidApp:testDebugUnitTest        # not yet KMP-converted
+./gradlew :feature:home:testAndroidHostTest    # KMP-converted
 ```
 
 Run a single test class or method (`--tests` works with any of the module targets above):
 ```bash
-./gradlew :feature:home:testDebugUnitTest --tests "org.neteinstein.family.feature.home.HomeViewModelTest"
-./gradlew :feature:home:testDebugUnitTest --tests "*.HomeViewModelTest.nextQuestion advances to next question"
+./gradlew :feature:home:testAndroidHostTest --tests "org.neteinstein.family.feature.home.HomeViewModelTest"
+./gradlew :feature:home:testAndroidHostTest --tests "*.HomeViewModelTest.nextQuestion advances to next question"
 ```
 
 `./gradlew ktlintCheck` runs the [ktlint Gradle plugin](https://github.com/JLLeitschuh/ktlint-gradle) (applied per-module, configured in each module's `build.gradle.kts` + root `.editorconfig`) — the formatting/style gate CI relies on. Run `./gradlew ktlintFormat` to auto-fix violations.
 
-CI (`.github/workflows/pr.yml`) runs five independent jobs on every PR into `main`/`develop`: `ktlint`, `assembleDebug`, `assembleRelease` + `scripts/verify-obfuscation.sh` (see [Obfuscation and shrinking](#obfuscation-and-shrinking) — `assembleDebug` never runs R8, so this is what catches a broken keep rule), `testDebugUnitTest`, and `createDebugUnitTestCoverageReport` (coverage report uploaded to Codecov). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied.
+CI (`.github/workflows/pr.yml`) runs five independent jobs on every PR into `main`/`develop`: `ktlint`, `assembleDebug`, `assembleRelease` + `scripts/verify-obfuscation.sh` (see [Obfuscation and shrinking](#obfuscation-and-shrinking) — `assembleDebug` never runs R8, so this is what catches a broken keep rule), `testDebugUnitTest testAndroidHostTest`, and `createGithubDebugUnitTestCoverageReport` (coverage report uploaded to Codecov). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied.
 
 ## Releases
 
