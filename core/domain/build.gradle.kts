@@ -42,10 +42,15 @@ kotlin {
             implementation(libs.coroutines.test)
         }
 
-        androidHostTest.dependencies {
-            implementation(libs.junit)
-            implementation(libs.mockk)
-            implementation(libs.coroutines.test)
+        // androidHostTest is created dynamically by withHostTestBuilder{} above, so (unlike the
+        // static commonMain/commonTest) it has no generated typesafe accessor - reached via
+        // getByName instead.
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.mockk)
+                implementation(libs.coroutines.test)
+            }
         }
     }
 }
