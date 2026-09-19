@@ -25,9 +25,12 @@ kotlin {
 
     sourceSets {
         wasmJsMain.dependencies {
-            // compose.ui comes in transitively via `app` (compose.material3/compose.foundation);
-            // no need to declare it again here (a direct `compose.ui` accessor is deprecated).
             implementation(projects.app)
+            // `implementation(projects.app)` isn't transitive, so app's own compose deps don't
+            // leak into webApp's compile classpath - ComposeViewport needs its own dependency
+            // here regardless. Referenced by coordinate rather than the `compose.ui` version
+            // catalog accessor, which is deprecated in this Compose Multiplatform version.
+            implementation("org.jetbrains.compose.ui:ui:${libs.versions.composeMultiplatform.get()}")
         }
     }
 }
