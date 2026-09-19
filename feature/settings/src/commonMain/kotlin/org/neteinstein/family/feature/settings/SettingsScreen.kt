@@ -87,6 +87,7 @@ import org.neteinstein.family.feature.settings.resources.settings_about_descript
 import org.neteinstein.family.feature.settings.resources.settings_app_title_format
 import org.neteinstein.family.feature.settings.resources.settings_language_subtitle
 import org.neteinstein.family.feature.settings.resources.settings_language_title
+import org.neteinstein.family.feature.settings.resources.settings_loopgain_footer
 import org.neteinstein.family.feature.settings.resources.settings_theme_dark
 import org.neteinstein.family.feature.settings.resources.settings_theme_light
 import org.neteinstein.family.feature.settings.resources.settings_theme_subtitle
