@@ -140,27 +140,26 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      # TEMPORARY diagnostic: testHostTestUnitTest (guessed name for the KMP android-library
-      # modules' JVM host-test task) doesn't exist - list core:domain's actual verification tasks
-      # to find the real name. Removed again once the real fix lands.
-      - name: List core:domain tasks (diagnostic)
-        run: ./gradlew :core:domain:tasks --all --console=plain
-
+      # testDebugUnitTest covers the remaining classic android-library modules
+      # (feature:home, androidApp); testAndroidHostTest covers the KMP android-library modules'
+      # (core:domain, core:data, core:ui, feature:splash, feature:settings, app) JVM host tests -
+      # a module without a given task is simply skipped, Gradle only errors if neither task exists
+      # anywhere in the build.
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+        run: ./gradlew testDebugUnitTest testAndroidHostTest --no-daemon --stacktrace
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-results
-          path: '**/build/test-results/test*UnitTest/**.xml'
+          path: '**/build/test-results/test*/**.xml'
 
       - name: Publish unit test results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          files: '**/build/test-results/test*UnitTest/**.xml'
+          files: '**/build/test-results/test*/**.xml'
           comment_title: '🧪 Unit Test Results'
 
   # ─── Code Coverage ──────────────────────────────────────────────────────────

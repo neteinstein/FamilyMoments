@@ -14,21 +14,23 @@ Family Moments is an Android app that helps families spark meaningful conversati
 
 ```bash
 ./gradlew assembleDebug                  # compile (mirrors CI "Compile" job)
-./gradlew testDebugUnitTest testHostTestUnitTest  # run all unit tests (mirrors CI "Unit Tests" job)
+./gradlew testDebugUnitTest testAndroidHostTest  # run all unit tests (mirrors CI "Unit Tests" job)
 ./gradlew createDebugUnitTestCoverageReport  # run tests + generate AGP built-in coverage reports (mirrors CI "Code Coverage" job)
 ./gradlew assembleRelease && ./scripts/verify-obfuscation.sh  # build + check the minified/obfuscated release (mirrors CI "Minified Release" job)
 ```
 
 > **KMP migration note:** modules already converted to Kotlin Multiplatform (`core:domain`, `core:data`,
-> `core:ui`, `feature:splash`, `feature:settings`) run their JVM/Android unit tests (both `commonTest`
-> and the `androidHostTest` source set) under `testHostTestUnitTest`, not `testDebugUnitTest` - that
+> `core:ui`, `feature:splash`, `feature:settings`) run their JVM/Android unit tests (the
+> `androidHostTest` source set) under `testAndroidHostTest`, not `testDebugUnitTest` - that
 > classic-android-library task only still applies to modules not yet converted (`feature:home`,
-> `androidApp`). Run both together to cover everything, as CI does.
+> `androidApp`). Run both together to cover everything, as CI does. The Code Coverage job's
+> `createDebugUnitTestCoverageReport` task has no equivalent wired up yet for these modules (it's
+> classic-android-library-only DSL) - a gap still open for Phase 8 of the KMP migration.
 
 Run tests for a single module:
 ```bash
 ./gradlew :feature:home:testDebugUnitTest      # not yet KMP-converted
-./gradlew :core:domain:testHostTestUnitTest    # KMP-converted
+./gradlew :core:domain:testAndroidHostTest     # KMP-converted
 ```
 
 Run a single test class or method (`--tests` works with any of the module targets above):
