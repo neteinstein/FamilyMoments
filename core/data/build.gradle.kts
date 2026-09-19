@@ -1,62 +1,88 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktlint)
 }
 
-android {
-    namespace = "org.neteinstein.family.data"
-    compileSdk = 37
+// Repository implementations + data sources - see AGENTS.md's KMP migration section.
+//
+// Room stays Android-only for now, exactly as it worked before this migration (entities/DAOs live
+// in androidMain, unchanged): its KMP support needs a per-target SQLite driver this module hasn't
+// set up for iOS yet. iOS and wasmJs get a simple in-memory QuestionLocalDataSource actual
+// instead - see that interface's doc comment. The GitHub self-update feature is Android-only
+// outright (APK sideloading has no iOS/Web equivalent) - see platformUpdateModule's actuals.
+kotlin {
+    jvmToolchain(17)
 
-    defaultConfig {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    android {
+        namespace = "org.neteinstein.family.data"
+        compileSdk = 37
         minSdk = 32
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        withHostTestBuilder {}.configure {}
     }
 
-    buildTypes {
-        debug {
-            enableUnitTestCoverage = true
+    iosArm64()
+    iosSimulatorArm64()
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":core:domain"))
+            implementation(libs.coroutines.core)
+            implementation(libs.koin.core)
         }
-    }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
+        androidMain.dependencies {
+            implementation(libs.koin.android)
+            implementation(libs.room.runtime)
+            implementation(libs.room.ktx)
+        }
 
-    testOptions {
-        unitTests.isReturnDefaultValues = true
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.coroutines.test)
+        }
+
+        // androidHostTest is created dynamically by withHostTestBuilder{} above, so (unlike the
+        // static commonMain/commonTest) it has no generated typesafe accessor - reached via
+        // getByName, matching core:domain's build.gradle.kts.
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.mockk)
+                implementation(libs.coroutines.test)
+                implementation(libs.koin.test)
+                implementation(libs.koin.test.junit4)
+                // android.jar's org.json classes are compile-only stubs (real bodies throw/return
+                // defaults) - GitHubUpdateRepositoryImplTest exercises real JSONObject/JSONArray
+                // parsing, so it needs a real desktop implementation of the same org.json package
+                // on the test runtime classpath.
+                implementation(libs.json)
+            }
+        }
     }
 }
 
+// Room's KSP codegen only runs against androidMain (see the kotlin{} block's comment) - Kotlin
+// Multiplatform's KSP integration needs this applied per-target rather than the single-target
+// ksp(...) dependency-configuration shorthand.
+dependencies {
+    add("kspAndroid", libs.room.compiler)
+}
+
 ktlint {
-    android.set(true)
-    ignoreFailures.set(false)
     reporters {
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
     }
-}
-
-dependencies {
-    implementation(project(":core:domain"))
-    implementation(libs.coroutines.core)
-    implementation(libs.koin.core)
-    implementation(libs.koin.android)
-    implementation(libs.core.ktx)
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
-    implementation(libs.datastore.preferences)
-
-    testImplementation(libs.junit)
-    testImplementation(libs.mockk)
-    testImplementation(libs.coroutines.test)
-    testImplementation(libs.koin.test)
-    testImplementation(libs.koin.test.junit4)
-    // android.jar's org.json classes are compile-only stubs (real bodies throw/return defaults
-    // under unitTests.isReturnDefaultValues) - GitHubUpdateRepositoryImplTest exercises real
-    // JSONObject/JSONArray parsing, so it needs a real desktop implementation of the same org.json
-    // package on the unit test runtime classpath.
-    testImplementation(libs.json)
 }
