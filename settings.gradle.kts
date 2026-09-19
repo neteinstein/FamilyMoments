@@ -33,6 +33,15 @@ dependencyResolutionManagement {
             metadataSources { artifact() }
             content { includeModule("org.nodejs", "node") }
         }
+        // Same conflict, same fix, for the Yarn distribution :kotlinWasmYarnSetup downloads.
+        ivy("https://github.com/yarnpkg/yarn/releases/download") {
+            name = "Yarn Distributions at https://github.com/yarnpkg/yarn/releases/download"
+            patternLayout {
+                artifact("v[revision]/[artifact](-v[revision]).[ext]")
+            }
+            metadataSources { artifact() }
+            content { includeModule("com.yarnpkg", "yarn") }
+        }
     }
 }
 
