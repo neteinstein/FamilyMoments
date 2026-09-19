@@ -1,23 +1,33 @@
 package org.neteinstein.family.domain.usecase
 
-import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
-import org.junit.Test
 import org.neteinstein.family.domain.model.Question
 import org.neteinstein.family.domain.repository.QuestionRepository
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+
+private class FakeQuestionRepository : QuestionRepository {
+    var randomQuestion: Question? = null
+    var lastRequestedLanguageCode: String? = null
+
+    override suspend fun getQuestions(languageCode: String): List<Question> = emptyList()
+
+    override suspend fun getRandomQuestion(languageCode: String): Question? {
+        lastRequestedLanguageCode = languageCode
+        return randomQuestion
+    }
+}
 
 class GetRandomQuestionUseCaseTest {
-    private val repository: QuestionRepository = mockk()
+    private val repository = FakeQuestionRepository()
     private val useCase = GetRandomQuestionUseCase(repository)
 
     @Test
     fun `invoke returns question from repository`() =
         runTest {
             val question = Question(id = 1, text = "Test question?", languageCode = "en")
-            coEvery { repository.getRandomQuestion("en") } returns question
+            repository.randomQuestion = question
 
             val result = useCase("en")
 
@@ -27,7 +37,7 @@ class GetRandomQuestionUseCaseTest {
     @Test
     fun `invoke returns null when no questions available`() =
         runTest {
-            coEvery { repository.getRandomQuestion("en") } returns null
+            repository.randomQuestion = null
 
             val result = useCase("en")
 
@@ -37,10 +47,10 @@ class GetRandomQuestionUseCaseTest {
     @Test
     fun `invoke passes language code to repository`() =
         runTest {
-            coEvery { repository.getRandomQuestion("pt") } returns null
+            repository.randomQuestion = null
 
             useCase("pt")
 
-            io.mockk.coVerify { repository.getRandomQuestion("pt") }
+            assertEquals("pt", repository.lastRequestedLanguageCode)
         }
 }

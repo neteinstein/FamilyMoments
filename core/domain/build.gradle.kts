@@ -1,42 +1,58 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.ktlint)
 }
 
-android {
-    namespace = "org.neteinstein.family.domain"
-    compileSdk = 37
+// Pure Kotlin domain layer (models, repository interfaces, use cases) - see AGENTS.md's KMP
+// migration section. The GitHub self-update feature (java.io.File-backed, Android-only - APK
+// sideloading has no iOS/Web equivalent) lives in androidMain rather than commonMain; everything
+// else here was already pure Kotlin before this conversion and needed no code changes, only a
+// move into commonMain.
+kotlin {
+    jvmToolchain(17)
 
-    defaultConfig {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    android {
+        namespace = "org.neteinstein.family.domain"
+        compileSdk = 37
         minSdk = 32
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        withHostTestBuilder {}.configure {}
     }
 
-    buildTypes {
-        debug {
-            enableUnitTestCoverage = true
+    iosArm64()
+    iosSimulatorArm64()
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.coroutines.core)
         }
-    }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.coroutines.test)
+        }
+
+        androidHostTest.dependencies {
+            implementation(libs.junit)
+            implementation(libs.mockk)
+            implementation(libs.coroutines.test)
+        }
     }
 }
 
 ktlint {
-    android.set(true)
-    ignoreFailures.set(false)
     reporters {
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
     }
-}
-
-dependencies {
-    implementation(libs.coroutines.core)
-
-    testImplementation(libs.junit)
-    testImplementation(libs.mockk)
-    testImplementation(libs.coroutines.test)
 }
