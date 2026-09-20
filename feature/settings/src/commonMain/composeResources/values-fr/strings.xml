@@ -9,11 +9,12 @@
     <string name="settings_theme_dark">Sombre</string>
     <string name="settings_language_title">Langue de l\'App</string>
     <string name="settings_language_subtitle">Changez la langue dans les paramètres Android</string>
+    <string name="settings_language_automatic">Automatique (langue de l\'appareil)</string>
     <string name="section_about">À propos</string>
     <string name="app_name">Family Moments</string>
     <string name="settings_app_title_format">%2$s: %1$s</string>
     <string name="settings_version_format">Version %1$s</string>
-    <string name="settings_about_description">Rapprocher les familles, une question à la fois. ❤️</string>
+    <string name="settings_about_description">Rapprocher les familles, une question à la fois.</string>
     <string name="section_reset_cards">Réinitialiser les Cartes</string>
     <string name="reset_cards_description">Les cartes masquées (glissées vers le bas comme déjà utilisées ou non désirées) restent hors rotation. Réinitialisez pour toutes les récupérer.</string>
     <string name="reset_cards_hidden_count_format">%1$d sur %2$d masquées.</string>

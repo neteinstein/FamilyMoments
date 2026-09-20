@@ -7,17 +7,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.neteinstein.family.domain.model.AppLanguage
 import org.neteinstein.family.domain.model.AppUpdate
 import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.domain.model.UpdateCheckResult
 import org.neteinstein.family.domain.repository.AppUpdateInstaller
-import org.neteinstein.family.domain.repository.LocaleProvider
 import org.neteinstein.family.domain.usecase.CheckForUpdateUseCase
 import org.neteinstein.family.domain.usecase.DownloadAppUpdateUseCase
+import org.neteinstein.family.domain.usecase.GetContentLanguageUseCase
+import org.neteinstein.family.domain.usecase.GetLanguageOverrideUseCase
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
 import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.ResetUsedQuestionsUseCase
+import org.neteinstein.family.domain.usecase.SetLanguageOverrideUseCase
 import org.neteinstein.family.domain.usecase.SetThemeModeUseCase
 
 /**
@@ -36,10 +39,15 @@ class SettingsViewModel(
     private val setThemeModeUseCase: SetThemeModeUseCase,
     private val getQuestionsUseCase: GetQuestionsUseCase,
     private val getUsedQuestionIdsUseCase: GetUsedQuestionIdsUseCase,
-    private val localeProvider: LocaleProvider,
+    private val getContentLanguageUseCase: GetContentLanguageUseCase,
+    private val getLanguageOverrideUseCase: GetLanguageOverrideUseCase,
+    private val setLanguageOverrideUseCase: SetLanguageOverrideUseCase,
     private val updatesEnabled: Boolean = true,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(SettingsUiState(updatesEnabled = updatesEnabled))
+    private val _uiState =
+        MutableStateFlow(
+            SettingsUiState(updatesEnabled = updatesEnabled, languageOverride = getLanguageOverrideUseCase()),
+        )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
@@ -67,7 +75,7 @@ class SettingsViewModel(
     /** Refreshes the "N of M hidden" count shown above the reset-cards button. */
     private fun loadCardCounts() {
         viewModelScope.launch {
-            val languageCode = localeProvider.currentLanguageCode()
+            val languageCode = getContentLanguageUseCase()
             val totalCardsCount = getQuestionsUseCase(languageCode).size
             val hiddenCardsCount = getUsedQuestionIdsUseCase().size
             _uiState.update { it.copy(totalCardsCount = totalCardsCount, hiddenCardsCount = hiddenCardsCount) }
@@ -77,6 +85,22 @@ class SettingsViewModel(
     fun onThemeModeSelected(themeMode: ThemeMode) {
         viewModelScope.launch {
             setThemeModeUseCase(themeMode)
+        }
+    }
+
+    /**
+     * Sets (or, with `null`, clears) the in-app language override - see
+     * [GetContentLanguageUseCase]. Only reachable from the language picker shown on iOS/Web (see
+     * `SettingsScreen`'s use of `rememberOpenLanguageSettingsAction`); Android changes its language
+     * through the OS's own per-app language settings instead. Card counts are reloaded immediately
+     * since they're language-dependent; `HomeViewModel` picks the new language up on its own the
+     * next time Home is entered (see its `onScreenEntered`).
+     */
+    fun onLanguageSelected(language: AppLanguage?) {
+        viewModelScope.launch {
+            setLanguageOverrideUseCase(language)
+            _uiState.update { it.copy(languageOverride = language) }
+            loadCardCounts()
         }
     }
 

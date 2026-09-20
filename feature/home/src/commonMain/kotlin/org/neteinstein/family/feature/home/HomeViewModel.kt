@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.neteinstein.family.domain.model.Question
 import org.neteinstein.family.domain.model.QuestionCategory
-import org.neteinstein.family.domain.repository.LocaleProvider
+import org.neteinstein.family.domain.usecase.GetContentLanguageUseCase
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.MarkQuestionUsedUseCase
@@ -25,7 +25,7 @@ data class HomeUiState(
 
 class HomeViewModel(
     private val getQuestionsUseCase: GetQuestionsUseCase,
-    private val localeProvider: LocaleProvider,
+    private val getContentLanguageUseCase: GetContentLanguageUseCase,
     private val getUsedQuestionIdsUseCase: GetUsedQuestionIdsUseCase,
     private val markQuestionUsedUseCase: MarkQuestionUsedUseCase,
 ) : ViewModel() {
@@ -42,14 +42,15 @@ class HomeViewModel(
     }
 
     /**
-     * Re-checks the OS-applied app language and reloads questions if it changed since the last
-     * load - the user can change it via Settings > App Language without this ViewModel (scoped to
-     * the Home back stack entry) being recreated, so [init] alone isn't enough to pick that up.
-     * Otherwise, just refreshes which cards are hidden, so returning from Settings after a
-     * "Reset Cards" makes previously hidden cards reappear without needing a full reload.
+     * Re-checks the active content language ([GetContentLanguageUseCase] - the OS/browser locale,
+     * or the user's in-app override) and reloads questions if it changed since the last load - the
+     * user can change it via Settings without this ViewModel (scoped to the Home back stack entry)
+     * being recreated, so [init] alone isn't enough to pick that up. Otherwise, just refreshes
+     * which cards are hidden, so returning from Settings after a "Reset Cards" makes previously
+     * hidden cards reappear without needing a full reload.
      */
     fun onScreenEntered() {
-        val languageCode = localeProvider.currentLanguageCode()
+        val languageCode = getContentLanguageUseCase()
         if (languageCode != loadedLanguageCode) {
             loadQuestions(languageCode)
         } else {
@@ -64,7 +65,7 @@ class HomeViewModel(
         }
     }
 
-    fun loadQuestions(languageCode: String = localeProvider.currentLanguageCode()) {
+    fun loadQuestions(languageCode: String = getContentLanguageUseCase()) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             loadedLanguageCode = languageCode
