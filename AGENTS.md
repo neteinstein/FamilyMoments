@@ -15,15 +15,15 @@ Family Moments is an Android app that helps families spark meaningful conversati
 ```bash
 ./gradlew assembleDebug                  # compile (mirrors CI "Compile" job)
 ./gradlew testGithubDebugUnitTest testPlaystoreDebugUnitTest testAndroidHostTest  # run all unit tests (mirrors CI "Unit Tests" job)
-./gradlew createGithubDebugUnitTestCoverageReport  # run tests + generate AGP built-in coverage reports (mirrors CI "Code Coverage" job)
+./gradlew createGithubDebugUnitTestCoverageReport testAndroidHostTest koverXmlReport  # coverage: AGP for androidApp, Kover for every KMP module (mirrors CI "Code Coverage" job)
 ./gradlew assembleRelease && ./scripts/verify-obfuscation.sh  # build + check the minified/obfuscated release (mirrors CI "Minified Release" job)
 ```
 
 > **KMP migration note:** modules already converted to Kotlin Multiplatform (`core:domain`,
-> `core:data`, `core:ui`, `feature:splash`, `feature:settings`, `feature:home`) run their
+> `core:data`, `core:ui`, `feature:splash`, `feature:settings`, `feature:home`, `app`) run their
 > JVM/Android unit tests (the `androidHostTest` source set) under `testAndroidHostTest`. `androidApp`
-> (the one module not yet converted) builds two product flavors (see Releases below), so its unit
-> test/coverage tasks are flavor-scoped - `testGithubDebugUnitTest`/`testPlaystoreDebugUnitTest`
+> (the one module not yet converted to KMP) builds two product flavors (see Releases below), so its
+> unit test/coverage tasks are flavor-scoped - `testGithubDebugUnitTest`/`testPlaystoreDebugUnitTest`
 > and `createGithubDebugUnitTestCoverageReport`/`createPlaystoreDebugUnitTestCoverageReport` - the
 > plain `testDebugUnitTest`/`createDebugUnitTestCoverageReport` names are ambiguous now that no
 > unflavored module exposes them directly (Gradle's task-name abbreviation matching treats the
@@ -31,8 +31,22 @@ Family Moments is an Android app that helps families spark meaningful conversati
 > `github` for coverage. `enableUnitTestCoverage = true` and `MainActivityViewModelTest.kt` were
 > added to `androidApp` specifically so `createGithubDebugUnitTestCoverageReport` has both a task to
 > run and real coverage data to report on (AGP hard-fails that task, rather than producing an empty
-> report, if a module enables coverage but has zero unit tests). Real per-module coverage for the
-> KMP modules themselves is a Phase 8 follow-up.
+> report, if a module enables coverage but has zero unit tests).
+>
+> **Kover for the KMP modules:** AGP's classic `enableUnitTestCoverage` has no equivalent for the
+> KMP android-library plugin (`com.android.kotlin.multiplatform.library`) that `core:domain`,
+> `core:data`, `core:ui`, `feature:splash`, `feature:home`, `feature:settings`, and `app` all use -
+> confirmed against the plugin's actual DSL, not assumed. `kotlinx-kover` (`libs.plugins.kover`,
+> applied to each of those seven modules plus the root project) covers them instead: the root
+> `build.gradle.kts` applies the plugin for real (not `apply false` like every other root-declared
+> plugin) since it's the Kover "merging module" - its `dependencies { kover(project(...)) }` block
+> lists all seven, and `./gradlew koverXmlReport` produces one aggregated XML report at
+> `build/reports/kover/report.xml`. `androidApp` and `webApp` (the latter has no tests yet) aren't
+> included - `androidApp` keeps its own separate AGP-native mechanism above rather than running two
+> coverage tools for one module. CI runs `testAndroidHostTest` explicitly alongside
+> `koverXmlReport` rather than relying on the report task's own dependencies, to sidestep a known
+> AGP 9.x issue where Kover's report tasks can end up with no real dependency on the test tasks
+> that generate their input (Kotlin/kotlinx-kover#785).
 
 Run tests for a single module:
 ```bash
@@ -48,7 +62,7 @@ Run a single test class or method (`--tests` works with any of the module target
 
 `./gradlew ktlintCheck` runs the [ktlint Gradle plugin](https://github.com/JLLeitschuh/ktlint-gradle) (applied per-module, configured in each module's `build.gradle.kts` + root `.editorconfig`) — the formatting/style gate CI relies on. Run `./gradlew ktlintFormat` to auto-fix violations.
 
-CI (`.github/workflows/pr.yml`) runs seven independent jobs on every PR into `main`/`develop`: `ktlint`, `assembleDebug`, `assembleRelease` + `scripts/verify-obfuscation.sh` (see [Obfuscation and shrinking](#obfuscation-and-shrinking) — `assembleDebug` never runs R8, so this is what catches a broken keep rule), `testGithubDebugUnitTest testPlaystoreDebugUnitTest testAndroidHostTest`, `createGithubDebugUnitTestCoverageReport` (coverage report uploaded to Codecov), `:webApp:wasmJsBrowserDistribution` (Compile Web), and `iosSimulatorArm64Test` on a `macos-latest` runner (Compile iOS — needs the Kotlin/Native/Xcode toolchain; run unscoped so Gradle resolves it against every KMP module, which compiles each one's `commonMain`/`iosMain` for the simulator target even though most existing tests are MockK-based and can't run there). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied; this only covers `androidApp`, since AGP's new `com.android.kotlin.multiplatform.library` plugin (used by every `core:*`/`feature:*`/`app` module) has no equivalent DSL — see the KMP migration note above.
+CI (`.github/workflows/pr.yml`) runs seven independent jobs on every PR into `main`/`develop`: `ktlint`, `assembleDebug`, `assembleRelease` + `scripts/verify-obfuscation.sh` (see [Obfuscation and shrinking](#obfuscation-and-shrinking) — `assembleDebug` never runs R8, so this is what catches a broken keep rule), `testGithubDebugUnitTest testPlaystoreDebugUnitTest testAndroidHostTest`, `createGithubDebugUnitTestCoverageReport testAndroidHostTest koverXmlReport` (both reports uploaded to Codecov in the same job), `:webApp:wasmJsBrowserDistribution` (Compile Web), and `iosSimulatorArm64Test` on a `macos-latest` runner (Compile iOS — needs the Kotlin/Native/Xcode toolchain; run unscoped so Gradle resolves it against every KMP module, which compiles each one's `commonMain`/`iosMain` for the simulator target even though most existing tests are MockK-based and can't run there). Coverage is two separate mechanisms, not one: AGP's built-in `enableUnitTestCoverage = true` (`androidApp` only, a classic android-application module) and `kotlinx-kover` (every `core:*`/`feature:*`/`app` module, all KMP android-library modules that have no `enableUnitTestCoverage` equivalent) — see the KMP migration note above for why they can't share one mechanism.
 
 ## Releases
 
@@ -98,17 +112,21 @@ Obfuscated stack traces need the matching mapping file, and R8 emits a different
 
 ## Architecture
 
-> **KMP migration in progress** (merged to `main`, Phases 1-7/8 done): this repo is being migrated
-> to Kotlin Multiplatform + Compose Multiplatform, targeting Android + iOS + Web (wasmJs),
-> following the pattern in `neteinstein/loopgain`. `core:domain`, `core:data`, `core:ui`,
-> `feature:splash`, `feature:settings`, `feature:home`, and `app` (the real KMP aggregator - shared
-> `App()`, navigation, and DI) are converted/wired up, and `androidApp`'s own main code now depends
-> on nothing but `app` (Phase 7) - it's just the Android application shell (manifest, flavors,
-> signing, ProGuard) plus one test-only `core:domain` dependency for its coverage-stopgap test (see
-> `MainActivityViewModelTest.kt`'s comment). Only Phase 8 remains: there's still no CI job that
-> actually builds the iOS framework or the wasmJs bundle on a PR - only `deploy-pages.yml` builds
-> the wasmJs app, and only after a push to `main` - and no real per-module coverage for the KMP
-> modules themselves.
+> **KMP migration complete** (merged to `main`, Phases 1-8/8 done): this repo has been migrated to
+> Kotlin Multiplatform + Compose Multiplatform, targeting Android + iOS + Web (wasmJs), following
+> the pattern in `neteinstein/loopgain`. `core:domain`, `core:data`, `core:ui`, `feature:splash`,
+> `feature:settings`, `feature:home`, and `app` (the real KMP aggregator - shared `App()`,
+> navigation, and DI) are converted/wired up; `androidApp`'s own main code depends on nothing but
+> `app` (Phase 7) - it's just the Android application shell (manifest, flavors, signing, ProGuard)
+> plus one test-only `core:domain` dependency for its coverage-stopgap test (see
+> `MainActivityViewModelTest.kt`'s comment). CI (Phase 8) builds and verifies all three platforms
+> on every PR - `Compile iOS` and `Compile Web` jobs alongside the Android ones - and every KMP
+> module has real coverage reporting via `kotlinx-kover`, not just `androidApp`'s own stopgap. Two
+> functional gaps remain outside this migration's original scope, not yet addressed: iOS and
+> wasmJs both persist question/card data in memory only (no Room/browser-storage-backed
+> implementation - see `QuestionLocalDataSourceImpl`'s doc comment on each platform), and the
+> planned `build-logic` convention plugins to DRY the repeated `kotlin { androidTarget(); ... }`
+> block across modules were never introduced.
 
 Gradle multi-module project, wired via `settings.gradle.kts`:
 

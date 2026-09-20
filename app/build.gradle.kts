@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.kover)
 }
 
 // The shared Kotlin Multiplatform aggregator module - commonMain holds the composed Koin

@@ -4,6 +4,7 @@ kotlin = "2.4.10"
 coroutines = "1.10.2"
 lifecycle = "2.10.0"
 navigationCompose = "2.10.1"
+kover = "0.9.9"
 # The JetBrains-published KMP fork of Navigation Compose (same androidx.navigation.* package, just
 # a different Maven coordinate) - the mainline androidx.navigation:navigation-compose artifact
 # publishes Android/JVM/native variants but no wasmJs one (confirmed via a real Gradle resolution
@@ -111,3 +112,4 @@ compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMu
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
 play-publisher = { id = "com.github.triplet.play", version.ref = "playPublisher" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
