@@ -9,6 +9,33 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.play.publisher) apply false
+    // Applied for real (not `apply false`) - unlike the plugins above, this root project is
+    // itself the Kover "merging module" that aggregates coverage from the KMP modules listed
+    // below, via `kover(project(...))` dependencies. AGP's classic `enableUnitTestCoverage`
+    // (still used by androidApp alone, see its build.gradle.kts) has no equivalent for the KMP
+    // android-library plugin every core:*/feature:*/app module uses instead - see AGENTS.md's
+    // KMP migration section.
+    alias(libs.plugins.kover)
+}
+
+kover {
+    reports {
+        total {
+            xml {
+                onCheck = false
+            }
+        }
+    }
+}
+
+dependencies {
+    kover(project(":core:domain"))
+    kover(project(":core:data"))
+    kover(project(":core:ui"))
+    kover(project(":feature:splash"))
+    kover(project(":feature:home"))
+    kover(project(":feature:settings"))
+    kover(project(":app"))
 }
 
 // No manual root "clean" task here (Android Studio's usual boilerplate) - `app`'s wasmJs target

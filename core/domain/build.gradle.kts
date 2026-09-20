@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.kover)
 }
 
 // Pure Kotlin domain layer (models, repository interfaces, use cases) - see AGENTS.md's KMP

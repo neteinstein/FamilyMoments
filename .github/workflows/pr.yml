@@ -250,22 +250,29 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      # androidApp is the only module left with this task (every core:*/feature:* module is now a
-      # KMP android-library, which has no coverage-report equivalent yet - see AGENTS.md's KMP
-      # migration note) - and it builds two flavors, so the plain "Debug" task name is ambiguous;
-      # pin to one (github, the flavor this project treats as primary elsewhere).
+      # androidApp keeps AGP's own coverage-report task (createGithubDebugUnitTestCoverageReport -
+      # pinned to the "github" flavor, since it builds two and the plain "Debug" task name is
+      # ambiguous) since it's a classic android-application module. Every core:*/feature:*/app
+      # module is a KMP android-library instead, which has no enableUnitTestCoverage equivalent
+      # (see AGENTS.md's KMP migration note) - kotlinx-kover covers those, aggregated at the root
+      # project via the `kover(project(...))` dependencies in the root build.gradle.kts.
+      # testAndroidHostTest runs explicitly (not left to koverXmlReport's own task dependencies)
+      # to sidestep a known issue where AGP 9.x can leave Kover's report tasks without a real
+      # dependency on the test tasks that generate their input (Kotlin/kotlinx-kover#785).
       - name: Run tests with coverage
-        run: ./gradlew createGithubDebugUnitTestCoverageReport --no-daemon --stacktrace
+        run: ./gradlew createGithubDebugUnitTestCoverageReport testAndroidHostTest koverXmlReport --no-daemon --stacktrace
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
-          path: '**/build/reports/coverage/'
+          path: |
+            **/build/reports/coverage/
+            build/reports/kover/
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6
         with:
-          files: '**/build/reports/coverage/test/githubDebug/report.xml'
+          files: '**/build/reports/coverage/test/githubDebug/report.xml,build/reports/kover/report.xml'
           fail_ci_if_error: false
           verbose: true

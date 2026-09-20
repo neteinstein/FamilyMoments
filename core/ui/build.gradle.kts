@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.kover)
 }
 
 // Shared Compose Multiplatform theme (Color/Theme/Typography) + the campfire artwork - see

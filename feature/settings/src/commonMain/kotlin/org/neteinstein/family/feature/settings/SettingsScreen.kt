@@ -196,21 +196,26 @@ fun SettingsScreen(
                         onThemeModeSelected = viewModel::onThemeModeSelected,
                     )
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    // No system language-settings page to deep-link into on iOS/Web (see
+                    // rememberOpenLanguageSettingsAction's doc comment) - hide the row entirely
+                    // there rather than show a control that does nothing when tapped.
+                    if (openLanguageSettings != null) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                    SettingsItem(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Language,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        },
-                        title = stringResource(Res.string.settings_language_title),
-                        subtitle = stringResource(Res.string.settings_language_subtitle),
-                        onClick = openLanguageSettings,
-                    )
+                        SettingsItem(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.Language,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            },
+                            title = stringResource(Res.string.settings_language_title),
+                            subtitle = stringResource(Res.string.settings_language_subtitle),
+                            onClick = openLanguageSettings,
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
