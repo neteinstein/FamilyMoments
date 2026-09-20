@@ -165,6 +165,68 @@ jobs:
           files: '**/build/test-results/test*/**.xml'
           comment_title: '🧪 Unit Test Results'
 
+  # ─── Web (wasmJs) Compile ───────────────────────────────────────────────────
+  # deploy-pages.yml runs this same task on every push to main, but only after the merge - this
+  # job catches a broken wasmJs build before that, on the PR itself.
+  compile-web:
+    name: Compile Web
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v6
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build wasmJs production distribution
+        run: ./gradlew :webApp:wasmJsBrowserDistribution --no-daemon --stacktrace
+
+  # ─── iOS Compile ────────────────────────────────────────────────────────────
+  # Needs a macOS runner for the Kotlin/Native iOS toolchain (Xcode). Runs the unscoped
+  # iosSimulatorArm64Test task, which Gradle resolves against every KMP module (core:*, feature:*,
+  # app) - this compiles each module's commonMain/iosMain source for the simulator target and runs
+  # whatever commonTest suites can execute there. Most ViewModel/repository tests are MockK-based
+  # and JVM/Robolectric-only (see AGENTS.md's testing conventions - MockK has no Kotlin/Native
+  # support), so this job's main value is compile verification across the whole module graph, not
+  # full test coverage on iOS; app's AppScaffoldTest is the one suite written to actually run here.
+  compile-ios:
+    name: Compile iOS
+    runs-on: macos-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v6
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build and test for iOS simulator
+        run: ./gradlew iosSimulatorArm64Test --no-daemon --stacktrace
+
   # ─── Code Coverage ──────────────────────────────────────────────────────────
   coverage:
     name: Code Coverage
