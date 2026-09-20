@@ -72,12 +72,13 @@ android {
         debug {
             isDebuggable = true
             // The only module left with this classic android-application/-library DSL now that
-            // every other module (core:*, feature:*) has converted to a KMP android-library, which
-            // has no equivalent yet (see AGENTS.md's KMP migration note) - without this, CI's Code
-            // Coverage job's createDebugUnitTestCoverageReport task doesn't exist anywhere in the
-            // build at all. androidApp itself has no unit tests of its own yet, so this produces an
-            // essentially empty report for now; real per-module coverage for the KMP modules is a
-            // Phase 8 follow-up.
+            // every other module (core:*, feature:*, app) has converted to a KMP android-library,
+            // which has no equivalent yet (see AGENTS.md's KMP migration note) - without this,
+            // CI's Code Coverage job's createDebugUnitTestCoverageReport task doesn't exist
+            // anywhere in the build at all. androidApp's own MainActivityViewModelTest.kt (see its
+            // comment) exists specifically to give this task real data to report on, now that
+            // androidApp itself is otherwise just a thin Android application shell (Phase 7);
+            // real per-module coverage for the KMP modules is a Phase 8 follow-up.
             enableUnitTestCoverage = true
         }
         release {
@@ -150,17 +151,11 @@ ktlint {
 }
 
 dependencies {
-    // Provides the shared App()/MainActivityViewModel/navigation/DI (MainActivity/FamilyMomentsApp
-    // call straight into it now) - see AGENTS.md's KMP migration section. The direct core/feature
-    // module dependencies below are now redundant for main-code compilation but stay until Phase 7
-    // slims this module down to just the Android application shell.
+    // Provides the shared App()/MainActivityViewModel/navigation/DI - MainActivity/FamilyMomentsApp
+    // call straight into it (see AGENTS.md's KMP migration section). androidApp's own main code
+    // has no direct dependency on any core:*/feature:* module any more (Phase 7) - everything it
+    // needs from them reaches it transitively through `app`.
     implementation(project(":app"))
-    implementation(project(":core:domain"))
-    implementation(project(":core:data"))
-    implementation(project(":core:ui"))
-    implementation(project(":feature:splash"))
-    implementation(project(":feature:home"))
-    implementation(project(":feature:settings"))
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
@@ -180,6 +175,9 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 
+    // Only MainActivityViewModelTest.kt needs this (ThemeMode/GetThemeModeUseCase) - see its
+    // comment for why the test itself still lives here rather than solely in `app`.
+    testImplementation(project(":core:domain"))
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.coroutines.test)
