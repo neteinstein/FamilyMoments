@@ -16,11 +16,6 @@ import org.junit.Test
 import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
 
-// MainActivityViewModel itself now lives in `app`'s commonMain (Phase 6) - this file stays only
-// to keep androidApp's own createGithubDebugUnitTestCoverageReport task satisfied (AGP hard-fails
-// it if a module enables coverage but has zero unit tests); `app` has its own, real copy of this
-// test under androidHostTest. Delete this file once Phase 7 turns androidApp's coverage stopgap
-// off or points it somewhere androidApp still owns.
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainActivityViewModelTest {
     private val testDispatcher = StandardTestDispatcher()

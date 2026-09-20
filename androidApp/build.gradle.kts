@@ -150,6 +150,11 @@ ktlint {
 }
 
 dependencies {
+    // Provides the shared App()/MainActivityViewModel/navigation/DI (MainActivity/FamilyMomentsApp
+    // call straight into it now) - see AGENTS.md's KMP migration section. The direct core/feature
+    // module dependencies below are now redundant for main-code compilation but stay until Phase 7
+    // slims this module down to just the Android application shell.
+    implementation(project(":app"))
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
     implementation(project(":core:ui"))

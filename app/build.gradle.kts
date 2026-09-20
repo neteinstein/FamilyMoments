@@ -43,18 +43,19 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            // compose.material3/compose.foundation already pull in UI transitively; a direct
-            // compose.ui accessor is deprecated in this Compose Multiplatform version.
-            // compose.components.resources isn't added yet: nothing here references generated
-            // Res.* yet, and its resource-generator task emits generated Kotlin that ktlint then
-            // lints (and fails on) since nothing excludes app/build/generated from its scan - add
-            // it back, with that exclusion, once a later phase actually needs Compose resources.
-            implementation(compose.components.uiToolingPreview)
+            implementation(project(":core:domain"))
+            implementation(project(":core:data"))
+            implementation(project(":core:ui"))
+            implementation(project(":feature:splash"))
+            implementation(project(":feature:home"))
+            implementation(project(":feature:settings"))
+            // Compose Material3/Foundation/animation/runtime and lifecycle-runtime-compose all
+            // reach this module transitively via core:ui's `api` exports (the same pattern every
+            // feature:* module already uses) - no need to redeclare them here.
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.navigation.compose)
         }
 
         androidMain.dependencies {
@@ -63,6 +64,14 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.mockk)
+                implementation(libs.coroutines.test)
+            }
         }
     }
 }
