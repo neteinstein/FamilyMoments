@@ -9,7 +9,7 @@ import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
 
 /**
- * Exposes the persisted theme-mode preference so [MainActivity] can resolve it into the boolean
+ * Exposes the persisted theme-mode preference so [App] can resolve it into the boolean
  * `FamilyMomentsTheme`'s `darkTheme` parameter expects.
  */
 class MainActivityViewModel(

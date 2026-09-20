@@ -98,23 +98,29 @@ Obfuscated stack traces need the matching mapping file, and R8 emits a different
 
 ## Architecture
 
-> **KMP migration in progress** (merged to `main`, Phases 1-5/8 done): this repo is being migrated
+> **KMP migration in progress** (merged to `main`, Phases 1-6/8 done): this repo is being migrated
 > to Kotlin Multiplatform + Compose Multiplatform, targeting Android + iOS + Web (wasmJs),
 > following the pattern in `neteinstein/loopgain`. `core:domain`, `core:data`, `core:ui`,
-> `feature:splash`, `feature:settings`, and `feature:home` are already converted. `app` (the
-> future KMP aggregator module) and `androidApp` (the still fully-functional, not-yet-slimmed-down
-> Android entry point) remain Phase 6/7 work — the module table and conventions below describe the
-> pre-Phase-6 state and are being updated module-by-module as the migration proceeds.
+> `feature:splash`, `feature:settings`, `feature:home`, and now `app` (the real KMP aggregator -
+> shared `App()`, navigation, and DI) are converted/wired up. `androidApp` still fully works but
+> hasn't been slimmed down yet (Phase 7): it depends directly on every core/feature module in
+> addition to its new dependency on `app`, and still owns real per-flavor coverage/test wiring that
+> may move or go away once that happens. iOS and Web CI build verification (Phase 8) doesn't exist
+> yet either — only `deploy-pages.yml` builds the wasmJs app, and only after a push to `main`.
 
 Gradle multi-module project, wired via `settings.gradle.kts`:
 
 ```
-app                 # (mid-migration) KMP aggregator module - commonMain App()/DI/navigation once
-                     # core/feature modules are converted; currently a placeholder scaffold only.
-androidApp          # entry point: MainActivity, Application class, Koin DI wiring, navigation graph
-                     # (renamed from `app`; unchanged otherwise - still the real, shipping app)
-iosApp              # (new) Xcode project wrapper, no Gradle build file
-webApp              # (new) wasmJs entry point
+app                 # KMP aggregator module - commonMain holds App() (theme + NavHost), the
+                     # composed Koin appModule/doInitKoin, MainActivityViewModel, and the shared
+                     # navigation graph (AppNavigation.kt/Screen.kt); iosMain holds mainViewController().
+androidApp          # thin Android entry point: MainActivity/FamilyMomentsApp call straight into
+                     # `app`'s App()/appModule now (Phase 6) - still owns the manifest, flavors,
+                     # signing and ProGuard config; not yet slimmed of its now-redundant direct
+                     # core/feature module dependencies (Phase 7).
+iosApp              # Xcode project wrapper (no Gradle build file); iOSApp.swift calls
+                     # InitKoinKt.doInitKoin(), ContentView.swift renders MainViewControllerKt.mainViewController()
+webApp              # wasmJs entry point; Main.kt calls doInitKoin() then ComposeViewport { App() }
 core/domain         # pure Kotlin: models, repository interfaces, use cases — no Android/Compose deps
 core/data           # repository implementations + data sources, depends on core:domain
 core/ui             # shared Compose theme (Color/Theme/Typography), exposes Compose libs via `api`
@@ -133,15 +139,15 @@ feature/settings    # settings screen (language shortcut to system settings, abo
 
 `QuestionSeedData` (object in `core/data`, `core/data/src/main/kotlin/.../data/source/QuestionSeedData.kt`) holds hardcoded question lists per language (`en`, `pt`, `es`, `fr`, `de`) as the single content source, plus a `VERSION` constant. `QuestionRepositoryImpl` persists that content into a local Room database (`FamilyMomentsDatabase`/`CardDao`, `core/data/.../local/`) and implements `QuestionRepository` (the `core:domain` interface); there is no network layer. On first use each process, it compares `QuestionSeedData.VERSION` against what's stored in the single-row `seed_metadata` table (`SeedMetadataDao`) and, on any mismatch, fully deletes and reinserts every card — not just an additive insert — so a question added, edited, *or removed* from `QuestionSeedData` reaches already-installed devices; cards already hidden (see `UsedQuestionsRepositoryImpl`) are re-marked hidden by id after the replace so a version bump doesn't silently un-hide them. **Bump `QuestionSeedData.VERSION` any time you change its content**, and bump `FamilyMomentsDatabase`'s `@Database(version = ...)` (with an added `Migration`, never `fallbackToDestructiveMigration`) any time you change its schema. `GetQuestionsUseCase`/`GetRandomQuestionUseCase` sit on top of the repository interface and are what ViewModels actually call.
 
-Note: `app/src/main/res/xml/locale_config.xml` only declares `en` and `pt` as app locales, even though the data source has content for `es`/`fr`/`de` too — check both places when changing supported languages.
+Note: `androidApp/src/main/res/xml/locale_config.xml` only declares `en` and `pt` as app locales, even though the data source has content for `es`/`fr`/`de` too — check both places when changing supported languages.
 
 ### DI wiring (Koin)
 
-Each module that needs DI defines its own Koin module (`dataModule`, `homeModule`, …); `app/.../di/AppModule.kt` composes them into `appModule`, which `FamilyMomentsApp` (the `Application` subclass) starts via `startKoin`. When adding a feature module with a ViewModel, add its own `*Module.kt` under `feature/<name>/.../di/` and `include` it from `AppModule.kt`.
+Each module that needs DI defines its own Koin module (`dataModule`, `homeModule`, …); `app/.../di/AppModule.kt` composes them into `fun appModule(updatesEnabled: Boolean): Module`. It takes `updatesEnabled` as a parameter rather than reading it from a local `BuildConfig` because `app` (unlike `androidApp`) has no build flavors of its own — only `androidApp`'s "github"/"playstore" flavors know that value. `androidApp`'s `FamilyMomentsApp` calls `startKoin` directly with `appModule(BuildConfig.UPDATES_ENABLED)` (plus `androidContext()`/`androidLogger()`); iOS and Web instead call `app/.../di/InitKoin.kt`'s `doInitKoin()`, a zero-argument entry point (named `doInitKoin`, not `initKoin`, since Kotlin/Native's Objective-C exporter renames a top-level `init`-prefixed function unpredictably) that always passes `updatesEnabled = false`, since the GitHub self-update feature has no iOS/Web equivalent. When adding a feature module with a ViewModel, add its own `*Module.kt` under `feature/<name>/.../di/` and `include` it from `app`'s `AppModule.kt`.
 
 ### Navigation
 
-Single `NavHost` in `app/.../navigation/AppNavigation.kt`, routes defined as a `sealed class Screen` in `Screen.kt` (`Splash`, `Home`, `Settings`). Splash pops itself off the back stack (`popUpTo(inclusive = true)`) once it navigates to Home.
+Single `NavHost` in `app/.../navigation/AppNavigation.kt`, routes defined as a `sealed class Screen` in `Screen.kt` (`Splash`, `Home`, `Settings`). Splash pops itself off the back stack (`popUpTo(inclusive = true)`) once it navigates to Home. Shared across all three platforms via `app`'s `commonMain` — `androidx.navigation:navigation-compose` (2.10.1+) publishes Kotlin Multiplatform artifacts directly, so no separate JetBrains navigation fork is needed.
 
 ### MVVM conventions
 

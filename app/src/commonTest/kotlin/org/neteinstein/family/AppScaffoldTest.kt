@@ -4,9 +4,10 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
- * Trivial commonTest to prove the `kotlin.test` + `commonTest` wiring runs on every target
+ * Trivial commonTest proving the `kotlin.test` + `commonTest` wiring runs on every target
  * (`testDebugUnitTest` on Android, `:app:iosSimulatorArm64Test`/`:app:iosX64Test` on iOS,
- * `:app:wasmJsTest` on Web) before real shared logic lands here in a later migration phase.
+ * `:app:wasmJsTest` on Web) independently of `app`'s real shared logic (`App()`, navigation, DI -
+ * covered by MainActivityViewModelTest under `androidHostTest`, MockK-based so JVM/Android-only).
  */
 class AppScaffoldTest {
     @Test
