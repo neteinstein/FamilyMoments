@@ -1,0 +1,5 @@
+<resources>
+    <string name="install_app_banner_message">Get the full experience with the Family Moments Android app.</string>
+    <string name="install_app_banner_action">Install app</string>
+    <string name="cd_dismiss_install_app_banner">Dismiss</string>
+</resources>
