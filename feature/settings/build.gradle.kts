@@ -19,6 +19,14 @@ kotlin {
         minSdk = 32
 
         withHostTestBuilder {}.configure {}
+
+        // Compose Multiplatform resources (compose.resources { } below) reach the Android target
+        // as Android assets - off by default for a KMP android-library module (unlike a classic
+        // android-library, where it's implicit), so without this stringResource() calls can't find
+        // anything at runtime.
+        androidResources {
+            enable = true
+        }
     }
 
     iosArm64()

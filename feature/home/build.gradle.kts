@@ -24,6 +24,14 @@ kotlin {
         withHostTestBuilder {}.configure {
             isIncludeAndroidResources = true
         }
+
+        // Compose Multiplatform resources (compose.resources { } below) reach the Android target
+        // as Android assets - off by default for a KMP android-library module (unlike a classic
+        // android-library, where it's implicit), so without this stringResource()/painterResource()
+        // calls can't find anything at runtime, in Robolectric tests or the real app alike.
+        androidResources {
+            enable = true
+        }
     }
 
     iosArm64()

@@ -21,6 +21,14 @@ kotlin {
         namespace = "org.neteinstein.family.ui"
         compileSdk = 37
         minSdk = 32
+
+        // Compose Multiplatform resources (compose.resources { } below, the campfire drawables)
+        // reach the Android target as Android assets - off by default for a KMP android-library
+        // module (unlike a classic android-library, where it's implicit), so without this
+        // painterResource() calls can't find anything at runtime.
+        androidResources {
+            enable = true
+        }
     }
 
     iosArm64()
