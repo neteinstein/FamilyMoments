@@ -98,15 +98,17 @@ Obfuscated stack traces need the matching mapping file, and R8 emits a different
 
 ## Architecture
 
-> **KMP migration in progress** (merged to `main`, Phases 1-6/8 done): this repo is being migrated
+> **KMP migration in progress** (merged to `main`, Phases 1-7/8 done): this repo is being migrated
 > to Kotlin Multiplatform + Compose Multiplatform, targeting Android + iOS + Web (wasmJs),
 > following the pattern in `neteinstein/loopgain`. `core:domain`, `core:data`, `core:ui`,
-> `feature:splash`, `feature:settings`, `feature:home`, and now `app` (the real KMP aggregator -
-> shared `App()`, navigation, and DI) are converted/wired up. `androidApp` still fully works but
-> hasn't been slimmed down yet (Phase 7): it depends directly on every core/feature module in
-> addition to its new dependency on `app`, and still owns real per-flavor coverage/test wiring that
-> may move or go away once that happens. iOS and Web CI build verification (Phase 8) doesn't exist
-> yet either — only `deploy-pages.yml` builds the wasmJs app, and only after a push to `main`.
+> `feature:splash`, `feature:settings`, `feature:home`, and `app` (the real KMP aggregator - shared
+> `App()`, navigation, and DI) are converted/wired up, and `androidApp`'s own main code now depends
+> on nothing but `app` (Phase 7) - it's just the Android application shell (manifest, flavors,
+> signing, ProGuard) plus one test-only `core:domain` dependency for its coverage-stopgap test (see
+> `MainActivityViewModelTest.kt`'s comment). Only Phase 8 remains: there's still no CI job that
+> actually builds the iOS framework or the wasmJs bundle on a PR - only `deploy-pages.yml` builds
+> the wasmJs app, and only after a push to `main` - and no real per-module coverage for the KMP
+> modules themselves.
 
 Gradle multi-module project, wired via `settings.gradle.kts`:
 
@@ -115,9 +117,9 @@ app                 # KMP aggregator module - commonMain holds App() (theme + Na
                      # composed Koin appModule/doInitKoin, MainActivityViewModel, and the shared
                      # navigation graph (AppNavigation.kt/Screen.kt); iosMain holds mainViewController().
 androidApp          # thin Android entry point: MainActivity/FamilyMomentsApp call straight into
-                     # `app`'s App()/appModule now (Phase 6) - still owns the manifest, flavors,
-                     # signing and ProGuard config; not yet slimmed of its now-redundant direct
-                     # core/feature module dependencies (Phase 7).
+                     # `app`'s App()/appModule/setAndroidAppContext; owns the manifest, flavors,
+                     # signing and ProGuard config. Depends only on `app` for main code (Phase 7) -
+                     # a test-only core:domain dependency remains for its coverage-stopgap test.
 iosApp              # Xcode project wrapper (no Gradle build file); iOSApp.swift calls
                      # InitKoinKt.doInitKoin(), ContentView.swift renders MainViewControllerKt.mainViewController()
 webApp              # wasmJs entry point; Main.kt calls doInitKoin() then ComposeViewport { App() }
