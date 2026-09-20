@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- Without this, mobile browsers render the page at a virtual desktop-width viewport
+         (~980px) and scale the whole thing down to fit the actual screen - every element (text,
+         icons, spacing) ends up proportionally tiny instead of matching the native app's sizing.
+         user-scalable=no matches the native app's own behavior (no pinch-zoom on its Compose UI). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>FamilyMoments</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
