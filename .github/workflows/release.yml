@@ -62,8 +62,10 @@ jobs:
       - name: Run ktlint
         run: ./gradlew ktlintCheck --console=plain --no-daemon --stacktrace
 
+      # See pr.yml's "Run unit tests" step for why this is flavor-scoped + testAndroidHostTest
+      # rather than the plain (now-ambiguous) testDebugUnitTest.
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+        run: ./gradlew testGithubDebugUnitTest testPlaystoreDebugUnitTest testAndroidHostTest --no-daemon --stacktrace
 
       - name: Decode signing keystore
         env:

@@ -14,29 +14,29 @@ Family Moments is an Android app that helps families spark meaningful conversati
 
 ```bash
 ./gradlew assembleDebug                  # compile (mirrors CI "Compile" job)
-./gradlew testDebugUnitTest testAndroidHostTest  # run all unit tests (mirrors CI "Unit Tests" job)
+./gradlew testGithubDebugUnitTest testPlaystoreDebugUnitTest testAndroidHostTest  # run all unit tests (mirrors CI "Unit Tests" job)
 ./gradlew createGithubDebugUnitTestCoverageReport  # run tests + generate AGP built-in coverage reports (mirrors CI "Code Coverage" job)
 ./gradlew assembleRelease && ./scripts/verify-obfuscation.sh  # build + check the minified/obfuscated release (mirrors CI "Minified Release" job)
 ```
 
 > **KMP migration note:** modules already converted to Kotlin Multiplatform (`core:domain`,
 > `core:data`, `core:ui`, `feature:splash`, `feature:settings`, `feature:home`) run their
-> JVM/Android unit tests (the `androidHostTest` source set) under `testAndroidHostTest`, not
-> `testDebugUnitTest` - that classic-android-library task only still applies to `androidApp`, the
-> one module not yet converted. Run both together to cover everything, as CI does.
-> `createDebugUnitTestCoverageReport` (the Code Coverage job's task) has no KMP equivalent wired up
-> yet, and stopped existing anywhere in the build once the last classic-android-library module with
-> `buildTypes { debug { enableUnitTestCoverage = true } }` (`feature:home`) converted - `androidApp`
-> now carries that flag purely so the task still exists (it has no unit tests of its own yet, so
-> this produces an essentially empty report). Because `androidApp` builds two flavors
-> (`github`/`playstore`), the task name is flavor-scoped
-> (`createGithubDebugUnitTestCoverageReport`/`createPlaystoreDebugUnitTestCoverageReport`) rather
-> than the plain `createDebugUnitTestCoverageReport` - CI pins to `github`. Real per-module coverage
-> for the KMP modules is a Phase 8 follow-up.
+> JVM/Android unit tests (the `androidHostTest` source set) under `testAndroidHostTest`. `androidApp`
+> (the one module not yet converted) builds two product flavors (see Releases below), so its unit
+> test/coverage tasks are flavor-scoped - `testGithubDebugUnitTest`/`testPlaystoreDebugUnitTest`
+> and `createGithubDebugUnitTestCoverageReport`/`createPlaystoreDebugUnitTestCoverageReport` - the
+> plain `testDebugUnitTest`/`createDebugUnitTestCoverageReport` names are ambiguous now that no
+> unflavored module exposes them directly (Gradle's task-name abbreviation matching treats the
+> plain name as matching both flavor-scoped tasks instead of resolving one exactly). CI pins to
+> `github` for coverage. `enableUnitTestCoverage = true` and `MainActivityViewModelTest.kt` were
+> added to `androidApp` specifically so `createGithubDebugUnitTestCoverageReport` has both a task to
+> run and real coverage data to report on (AGP hard-fails that task, rather than producing an empty
+> report, if a module enables coverage but has zero unit tests). Real per-module coverage for the
+> KMP modules themselves is a Phase 8 follow-up.
 
 Run tests for a single module:
 ```bash
-./gradlew :androidApp:testDebugUnitTest        # not yet KMP-converted
+./gradlew :androidApp:testGithubDebugUnitTest  # not yet KMP-converted
 ./gradlew :feature:home:testAndroidHostTest    # KMP-converted
 ```
 
@@ -48,13 +48,13 @@ Run a single test class or method (`--tests` works with any of the module target
 
 `./gradlew ktlintCheck` runs the [ktlint Gradle plugin](https://github.com/JLLeitschuh/ktlint-gradle) (applied per-module, configured in each module's `build.gradle.kts` + root `.editorconfig`) — the formatting/style gate CI relies on. Run `./gradlew ktlintFormat` to auto-fix violations.
 
-CI (`.github/workflows/pr.yml`) runs five independent jobs on every PR into `main`/`develop`: `ktlint`, `assembleDebug`, `assembleRelease` + `scripts/verify-obfuscation.sh` (see [Obfuscation and shrinking](#obfuscation-and-shrinking) — `assembleDebug` never runs R8, so this is what catches a broken keep rule), `testDebugUnitTest testAndroidHostTest`, and `createGithubDebugUnitTestCoverageReport` (coverage report uploaded to Codecov). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied.
+CI (`.github/workflows/pr.yml`) runs five independent jobs on every PR into `main`/`develop`: `ktlint`, `assembleDebug`, `assembleRelease` + `scripts/verify-obfuscation.sh` (see [Obfuscation and shrinking](#obfuscation-and-shrinking) — `assembleDebug` never runs R8, so this is what catches a broken keep rule), `testGithubDebugUnitTest testPlaystoreDebugUnitTest testAndroidHostTest`, and `createGithubDebugUnitTestCoverageReport` (coverage report uploaded to Codecov). Coverage comes from AGP's built-in `enableUnitTestCoverage = true` (set per-module in `buildTypes { debug { ... } }`) — there is no separate Jacoco plugin applied.
 
 ## Releases
 
-`app` builds two product flavors under the `distribution` flavor dimension (`app/build.gradle.kts`): **`github`**, the direct-APK build distributed via GitHub Releases, and **`playstore`**, submitted to the Play Store. `assembleRelease`/`assembleDebug`/`testDebugUnitTest` etc. are aggregate tasks that build/test both flavors; use `assembleGithubRelease`/`assemblePlaystoreRelease` (etc.) to target one.
+`androidApp` builds two product flavors under the `distribution` flavor dimension (`androidApp/build.gradle.kts`): **`github`**, the direct-APK build distributed via GitHub Releases, and **`playstore`**, submitted to the Play Store. `assembleRelease`/`assembleDebug` are aggregate tasks that build both flavors; `testDebugUnitTest`/`createDebugUnitTestCoverageReport` are ambiguous for `androidApp` for that same reason (see the KMP migration note above) - use `assembleGithubRelease`/`assemblePlaystoreRelease`/`testGithubDebugUnitTest`/etc. to target one flavor, or both flavor-scoped task names together to cover both.
 
-Pushing to `main` (or a manual `workflow_dispatch`) triggers `.github/workflows/release.yml`, which runs `ktlintCheck` + `testDebugUnitTest`, builds signed `assembleRelease` APKs for both flavors plus the `playstore` flavor's `bundlePlaystoreRelease` App Bundle, and publishes all three as assets on a single GitHub Release tagged `v1.0.<run number>`. Signing requires four repo secrets: `KEYSTORE_BASE64` (base64-encoded `.jks`/`.keystore` file), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`. The workflow fails fast if any are missing. `app/build.gradle.kts`'s `versionCode`/`versionName` and `signingConfigs["release"]` read `APP_VERSION_CODE`/`APP_VERSION_NAME`/`KEYSTORE_FILE`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` env vars set by the workflow, falling back to debug signing and static defaults for local builds. The `playstore` APK is uploaded to the GitHub Release alongside the `github` one purely for archival; the `playstore` AAB is the one that actually matters for Play Console, whether uploaded there by hand or by the automated step below.
+Pushing to `main` (or a manual `workflow_dispatch`) triggers `.github/workflows/release.yml`, which runs `ktlintCheck` + `testGithubDebugUnitTest testPlaystoreDebugUnitTest testAndroidHostTest`, builds signed `assembleRelease` APKs for both flavors plus the `playstore` flavor's `bundlePlaystoreRelease` App Bundle, and publishes all three as assets on a single GitHub Release tagged `v1.0.<run number>`. Signing requires four repo secrets: `KEYSTORE_BASE64` (base64-encoded `.jks`/`.keystore` file), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`. The workflow fails fast if any are missing. `app/build.gradle.kts`'s `versionCode`/`versionName` and `signingConfigs["release"]` read `APP_VERSION_CODE`/`APP_VERSION_NAME`/`KEYSTORE_FILE`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` env vars set by the workflow, falling back to debug signing and static defaults for local builds. The `playstore` APK is uploaded to the GitHub Release alongside the `github` one purely for archival; the `playstore` AAB is the one that actually matters for Play Console, whether uploaded there by hand or by the automated step below.
 
 After the GitHub Release step, the workflow also runs `publishPlaystoreReleaseBundle` (from the [Gradle Play Publisher](https://github.com/Triple-T/gradle-play-publisher) plugin, `com.github.triplet.play` — applied in `app/build.gradle.kts`) to upload the `playstore` flavor's signed release App Bundle straight to the Play Console via the Google Play Developer API. This step only runs if the `ANDROID_PUBLISHER_CREDENTIALS` repo secret is set (the raw JSON contents of a Play Console service account key with "Release to production, exclude devices, and use Play App Signing" — or at least test-track — permission for this app); if it's unset, the workflow logs a notice and skips the step instead of failing, so forks/clones without Play Console access still get a GitHub Release. Publishes go to the `internal` track by default, overridable via the `PLAY_TRACK` repo variable, so a release never reaches production without an explicit promotion in the Play Console. `app/build.gradle.kts`'s `play { }` block is disabled (`enabled.set(false)`) by default and re-enabled only for the `playstore` flavor via `playConfigs` — the `github` flavor shares the same `applicationId` and must never be uploaded. Note: the Play Developer API can only publish updates to an app that already has at least one release uploaded manually through the Play Console; do that first before this automation will work — download the `.aab` asset from the GitHub Release (built regardless of whether `ANDROID_PUBLISHER_CREDENTIALS` is set) and upload it by hand under Play Console → your app → Production/Testing → Create release for that one-time first upload; every release after that is handled automatically by this step.
 
