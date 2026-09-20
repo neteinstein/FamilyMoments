@@ -32,3 +32,28 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Kotlin Multiplatform
+.kotlin/
+*.klib
+
+# iOS
+# iosApp/iosApp.xcodeproj (incl. its shared xcshareddata/xcschemes) is committed intentionally so
+# CI can build it headlessly - only the per-user caches below are ignored.
+*.xcworkspace
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+Pods/
+Podfile.lock
+
+# macOS
+.DS_Store

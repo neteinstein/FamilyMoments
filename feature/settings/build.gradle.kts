@@ -1,51 +1,75 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ktlint)
 }
 
-android {
-    namespace = "org.neteinstein.family.feature.settings"
-    compileSdk = 37
+kotlin {
+    jvmToolchain(17)
 
-    defaultConfig {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    android {
+        namespace = "org.neteinstein.family.feature.settings"
+        compileSdk = 37
         minSdk = 32
-    }
 
-    buildTypes {
-        debug {
-            enableUnitTestCoverage = true
+        withHostTestBuilder {}.configure {}
+
+        // Compose Multiplatform resources (compose.resources { } below) reach the Android target
+        // as Android assets - off by default for a KMP android-library module (unlike a classic
+        // android-library, where it's implicit), so without this stringResource() calls can't find
+        // anything at runtime.
+        androidResources {
+            enable = true
         }
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+    iosArm64()
+    iosSimulatorArm64()
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
     }
 
-    buildFeatures {
-        compose = true
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":core:domain"))
+            implementation(project(":core:ui"))
+            implementation(compose.components.resources)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.coroutines.core)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.coroutines.test)
+        }
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.mockk)
+                implementation(libs.coroutines.test)
+            }
+        }
     }
 }
 
+compose.resources {
+    packageOfResClass = "org.neteinstein.family.feature.settings.resources"
+}
+
 ktlint {
-    android.set(true)
-    ignoreFailures.set(false)
+    filter {
+        exclude { entry -> entry.file.path.contains("${File.separatorChar}generated${File.separatorChar}") }
+    }
     reporters {
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
     }
-}
-
-dependencies {
-    implementation(project(":core:domain"))
-    implementation(project(":core:ui"))
-    implementation(libs.koin.androidx.compose)
-    implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.lifecycle.runtime.compose)
-    implementation(libs.coroutines.android)
-
-    testImplementation(libs.junit)
-    testImplementation(libs.mockk)
-    testImplementation(libs.coroutines.test)
 }

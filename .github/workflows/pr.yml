@@ -67,13 +67,13 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
   # ─── Minified Release ───────────────────────────────────────────────────────
-  # `assembleDebug` above never runs R8, so a broken keep rule in app/proguard-rules.pro is
+  # `assembleDebug` above never runs R8, so a broken keep rule in androidApp/proguard-rules.pro is
   # invisible to it and would only surface in .github/workflows/release.yml, after the merge to
   # main. This job builds the same minified/obfuscated/resource-shrunk output the release
   # workflow does (both distribution flavors) and then asserts on R8's mapping file that
   # obfuscation actually happened and that the two names Room resolves reflectively survived it,
   # so a regression in the shrinker config fails the PR instead of the release.
-  # No signing secrets are needed: app/build.gradle.kts falls back to debug signing when
+  # No signing secrets are needed: androidApp/build.gradle.kts falls back to debug signing when
   # KEYSTORE_FILE is unset, and shrinking is identical either way.
   minified-release:
     name: Minified Release
@@ -110,7 +110,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: r8-mapping-files
-          path: app/build/outputs/mapping/*Release/
+          path: androidApp/build/outputs/mapping/*Release/
           # Not "error": this step runs with always(), so a build that failed before R8 ran has
           # nothing to upload and should report the build failure, not an artifact one.
           if-no-files-found: warn
@@ -140,21 +140,29 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      # androidApp (the only classic android-library module left) builds two flavors, so its unit
+      # test tasks are flavor-scoped (testGithubDebugUnitTest/testPlaystoreDebugUnitTest) - the
+      # plain testDebugUnitTest name is ambiguous once feature:home (the last unflavored module
+      # with that literal task) converted to KMP, since Gradle's task-name abbreviation matching
+      # then treats it as matching both flavor tasks instead of resolving directly. testAndroidHostTest
+      # covers the KMP android-library modules' (core:domain, core:data, core:ui, feature:splash,
+      # feature:settings, feature:home, app) JVM host tests. A module without a given task is simply
+      # skipped, Gradle only errors if none of these tasks exist anywhere in the build.
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+        run: ./gradlew testGithubDebugUnitTest testPlaystoreDebugUnitTest testAndroidHostTest --no-daemon --stacktrace
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: unit-test-results
-          path: '**/build/test-results/testDebugUnitTest/**.xml'
+          path: '**/build/test-results/test*/**.xml'
 
       - name: Publish unit test results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          files: '**/build/test-results/testDebugUnitTest/**.xml'
+          files: '**/build/test-results/test*/**.xml'
           comment_title: '🧪 Unit Test Results'
 
   # ─── Code Coverage ──────────────────────────────────────────────────────────
@@ -180,8 +188,12 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      # androidApp is the only module left with this task (every core:*/feature:* module is now a
+      # KMP android-library, which has no coverage-report equivalent yet - see AGENTS.md's KMP
+      # migration note) - and it builds two flavors, so the plain "Debug" task name is ambiguous;
+      # pin to one (github, the flavor this project treats as primary elsewhere).
       - name: Run tests with coverage
-        run: ./gradlew createDebugUnitTestCoverageReport --no-daemon --stacktrace
+        run: ./gradlew createGithubDebugUnitTestCoverageReport --no-daemon --stacktrace
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -192,6 +204,6 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6
         with:
-          files: '**/build/reports/coverage/test/debug/report.xml'
+          files: '**/build/reports/coverage/test/githubDebug/report.xml'
           fail_ci_if_error: false
           verbose: true

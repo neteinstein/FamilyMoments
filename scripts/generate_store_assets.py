@@ -2,8 +2,8 @@
 """Generate Play Store graphic assets straight from the app's own brand source.
 
 Rasterizes the exact <path> fillColor/strokeColor/pathData attributes from
-app/src/main/res/drawable/ic_launcher_foreground.xml and the splash_background color from
-app/src/main/res/values/colors.xml, at high resolution before downsampling with LANCZOS -
+androidApp/src/main/res/drawable/ic_launcher_foreground.xml and the splash_background color from
+androidApp/src/main/res/values/colors.xml, at high resolution before downsampling with LANCZOS -
 PIL's polygon/line primitives are aliased on their own, so this is what keeps the campfire
 mark's curves smooth instead of jagged. Re-run this after the launcher icon or brand colors
 change (needs Pillow and svgpathtools: pip install pillow svgpathtools).
@@ -22,7 +22,7 @@ from PIL import Image, ImageDraw, ImageFont
 from svgpathtools import parse_path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RES_DIR = REPO_ROOT / "app" / "src" / "main" / "res"
+RES_DIR = REPO_ROOT / "androidApp" / "src" / "main" / "res"
 FOREGROUND_XML = RES_DIR / "drawable" / "ic_launcher_foreground.xml"
 COLORS_XML = RES_DIR / "values" / "colors.xml"
 OUT_DIR = REPO_ROOT / "fastlane" / "metadata" / "android" / "en-US" / "images"

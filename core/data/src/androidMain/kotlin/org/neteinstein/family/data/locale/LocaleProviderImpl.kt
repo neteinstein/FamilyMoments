@@ -1,0 +1,13 @@
+package org.neteinstein.family.data.locale
+
+import org.neteinstein.family.domain.repository.LocaleProvider
+import java.util.Locale
+
+/**
+ * `Locale.getDefault()` is the process-wide default locale, which the OS itself overrides to match
+ * the user's per-app language selection (from `android:localeConfig`) for as long as this app's
+ * process is alive - no `Context`/`LocaleManager` lookup needed.
+ */
+actual class LocaleProviderImpl actual constructor() : LocaleProvider {
+    actual override fun currentLanguageCode(): String = Locale.getDefault().language
+}
