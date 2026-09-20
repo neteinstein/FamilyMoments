@@ -15,7 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.neteinstein.family.domain.model.Question
-import org.neteinstein.family.domain.repository.LocaleProvider
+import org.neteinstein.family.domain.usecase.GetContentLanguageUseCase
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.MarkQuestionUsedUseCase
@@ -46,14 +46,14 @@ class HomeScreenGridViewTest {
 
     private fun buildViewModel(): HomeViewModel {
         val getQuestionsUseCase: GetQuestionsUseCase = mockk()
-        val localeProvider: LocaleProvider = mockk()
+        val getContentLanguageUseCase: GetContentLanguageUseCase = mockk()
         val getUsedQuestionIdsUseCase: GetUsedQuestionIdsUseCase = mockk()
         val markQuestionUsedUseCase: MarkQuestionUsedUseCase = mockk()
-        every { localeProvider.currentLanguageCode() } returns "en"
+        every { getContentLanguageUseCase() } returns "en"
         coEvery { getQuestionsUseCase(any()) } returns fakeQuestions
         coEvery { getUsedQuestionIdsUseCase() } returns emptySet()
         coEvery { markQuestionUsedUseCase(any()) } returns Unit
-        return HomeViewModel(getQuestionsUseCase, localeProvider, getUsedQuestionIdsUseCase, markQuestionUsedUseCase)
+        return HomeViewModel(getQuestionsUseCase, getContentLanguageUseCase, getUsedQuestionIdsUseCase, markQuestionUsedUseCase)
     }
 
     @Test

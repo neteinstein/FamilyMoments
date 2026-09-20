@@ -17,19 +17,22 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.neteinstein.family.domain.model.AppLanguage
 import org.neteinstein.family.domain.model.AppUpdate
 import org.neteinstein.family.domain.model.Question
 import org.neteinstein.family.domain.model.QuestionCategory
 import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.domain.model.UpdateCheckResult
 import org.neteinstein.family.domain.repository.AppUpdateInstaller
-import org.neteinstein.family.domain.repository.LocaleProvider
 import org.neteinstein.family.domain.usecase.CheckForUpdateUseCase
 import org.neteinstein.family.domain.usecase.DownloadAppUpdateUseCase
+import org.neteinstein.family.domain.usecase.GetContentLanguageUseCase
+import org.neteinstein.family.domain.usecase.GetLanguageOverrideUseCase
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
 import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.ResetUsedQuestionsUseCase
+import org.neteinstein.family.domain.usecase.SetLanguageOverrideUseCase
 import org.neteinstein.family.domain.usecase.SetThemeModeUseCase
 import java.io.File
 
@@ -45,7 +48,9 @@ class SettingsViewModelTest {
     private val setThemeModeUseCase: SetThemeModeUseCase = mockk(relaxUnitFun = true)
     private val getQuestionsUseCase: GetQuestionsUseCase = mockk()
     private val getUsedQuestionIdsUseCase: GetUsedQuestionIdsUseCase = mockk()
-    private val localeProvider: LocaleProvider = mockk()
+    private val getContentLanguageUseCase: GetContentLanguageUseCase = mockk()
+    private val getLanguageOverrideUseCase: GetLanguageOverrideUseCase = mockk()
+    private val setLanguageOverrideUseCase: SetLanguageOverrideUseCase = mockk(relaxUnitFun = true)
 
     private val update = AppUpdate(versionName = "1.0.6", apkDownloadUrl = "https://example.com/app.apk")
     private val questions =
@@ -60,7 +65,8 @@ class SettingsViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { getThemeModeUseCase() } returns themeModeFlow
-        every { localeProvider.currentLanguageCode() } returns "en"
+        every { getContentLanguageUseCase() } returns "en"
+        every { getLanguageOverrideUseCase() } returns null
         coEvery { getQuestionsUseCase("en") } returns questions
         coEvery { getUsedQuestionIdsUseCase() } returns emptySet()
         viewModel =
@@ -73,7 +79,9 @@ class SettingsViewModelTest {
                 setThemeModeUseCase,
                 getQuestionsUseCase,
                 getUsedQuestionIdsUseCase,
-                localeProvider,
+                getContentLanguageUseCase,
+                getLanguageOverrideUseCase,
+                setLanguageOverrideUseCase,
             )
     }
 
@@ -229,7 +237,9 @@ class SettingsViewModelTest {
                     setThemeModeUseCase,
                     getQuestionsUseCase,
                     getUsedQuestionIdsUseCase,
-                    localeProvider,
+                    getContentLanguageUseCase,
+                    getLanguageOverrideUseCase,
+                    setLanguageOverrideUseCase,
                     updatesEnabled = false,
                 )
 
@@ -253,6 +263,34 @@ class SettingsViewModelTest {
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(ThemeMode.DARK, viewModel.uiState.value.themeMode)
+        }
+
+    @Test
+    fun `languageOverride defaults to null`() {
+        assertEquals(null, viewModel.uiState.value.languageOverride)
+    }
+
+    @Test
+    fun `onLanguageSelected persists the chosen language and updates state`() =
+        runTest {
+            coEvery { getQuestionsUseCase("pt") } returns questions
+            every { getContentLanguageUseCase() } returns "pt"
+
+            viewModel.onLanguageSelected(AppLanguage.PORTUGUESE)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { setLanguageOverrideUseCase(AppLanguage.PORTUGUESE) }
+            assertEquals(AppLanguage.PORTUGUESE, viewModel.uiState.value.languageOverride)
+        }
+
+    @Test
+    fun `onLanguageSelected with null clears the override`() =
+        runTest {
+            viewModel.onLanguageSelected(null)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { setLanguageOverrideUseCase(null) }
+            assertEquals(null, viewModel.uiState.value.languageOverride)
         }
 
     @Test

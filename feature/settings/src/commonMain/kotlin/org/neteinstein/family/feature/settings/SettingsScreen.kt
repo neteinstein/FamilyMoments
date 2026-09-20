@@ -1,5 +1,6 @@
 package org.neteinstein.family.feature.settings
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LightMode
@@ -24,6 +26,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -59,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.neteinstein.family.domain.model.AppLanguage
 import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.feature.settings.platform.rememberCurrentVersionName
 import org.neteinstein.family.feature.settings.platform.rememberOpenLanguageSettingsAction
@@ -85,6 +90,7 @@ import org.neteinstein.family.feature.settings.resources.section_reset_cards
 import org.neteinstein.family.feature.settings.resources.section_updates
 import org.neteinstein.family.feature.settings.resources.settings_about_description
 import org.neteinstein.family.feature.settings.resources.settings_app_title_format
+import org.neteinstein.family.feature.settings.resources.settings_language_automatic
 import org.neteinstein.family.feature.settings.resources.settings_language_subtitle
 import org.neteinstein.family.feature.settings.resources.settings_language_title
 import org.neteinstein.family.feature.settings.resources.settings_loopgain_footer
@@ -196,12 +202,12 @@ fun SettingsScreen(
                         onThemeModeSelected = viewModel::onThemeModeSelected,
                     )
 
-                    // No system language-settings page to deep-link into on iOS/Web (see
-                    // rememberOpenLanguageSettingsAction's doc comment) - hide the row entirely
-                    // there rather than show a control that does nothing when tapped.
-                    if (openLanguageSettings != null) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
+                    // Android deep-links into the OS's own per-app language settings. iOS/Web have
+                    // no such settings page (see rememberOpenLanguageSettingsAction's doc comment),
+                    // so they get an in-app picker instead of a dead "change language" row.
+                    if (openLanguageSettings != null) {
                         SettingsItem(
                             icon = {
                                 Icon(
@@ -214,6 +220,11 @@ fun SettingsScreen(
                             title = stringResource(Res.string.settings_language_title),
                             subtitle = stringResource(Res.string.settings_language_subtitle),
                             onClick = openLanguageSettings,
+                        )
+                    } else {
+                        LanguagePicker(
+                            selected = uiState.languageOverride,
+                            onLanguageSelected = viewModel::onLanguageSelected,
                         )
                     }
                 }
@@ -619,6 +630,63 @@ private fun SettingsItem(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp),
             )
+        }
+    }
+}
+
+/**
+ * In-app replacement for Android's "open system language settings" row, used on iOS/Web where no
+ * such settings page exists (see [rememberOpenLanguageSettingsAction]'s doc comment). [selected]
+ * is the current override ([SettingsUiState.languageOverride]) - `null` shows
+ * [Res.string.settings_language_automatic] and means "follow the OS/browser language" (see
+ * [org.neteinstein.family.domain.usecase.GetContentLanguageUseCase]).
+ */
+@Composable
+private fun LanguagePicker(
+    selected: AppLanguage?,
+    onLanguageSelected: (AppLanguage?) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val automaticLabel = stringResource(Res.string.settings_language_automatic)
+    val selectedLabel = selected?.nativeName ?: automaticLabel
+
+    Box {
+        SettingsItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Language,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp),
+                )
+            },
+            title = stringResource(Res.string.settings_language_title),
+            subtitle = selectedLabel,
+            onClick = { expanded = true },
+        )
+        val checkIcon: @Composable () -> Unit = { Icon(imageVector = Icons.Default.Check, contentDescription = null) }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text(automaticLabel) },
+                trailingIcon = if (selected == null) checkIcon else null,
+                onClick = {
+                    expanded = false
+                    onLanguageSelected(null)
+                },
+            )
+            for (language in AppLanguage.entries) {
+                DropdownMenuItem(
+                    text = { Text(language.nativeName) },
+                    trailingIcon = if (selected == language) checkIcon else null,
+                    onClick = {
+                        expanded = false
+                        onLanguageSelected(language)
+                    },
+                )
+            }
         }
     }
 }
