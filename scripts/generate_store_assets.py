@@ -25,7 +25,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 RES_DIR = REPO_ROOT / "androidApp" / "src" / "main" / "res"
 FOREGROUND_XML = RES_DIR / "drawable" / "ic_launcher_foreground.xml"
 COLORS_XML = RES_DIR / "values" / "colors.xml"
-OUT_DIR = REPO_ROOT / "fastlane" / "metadata" / "android" / "en-US" / "images"
+OUT_DIR = REPO_ROOT / "docs" / "android" / "en-US" / "images"
 
 ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
 SUPERSAMPLE = 8  # render at 8x, then LANCZOS down - smooths every curve/arc
