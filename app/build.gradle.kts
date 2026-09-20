@@ -55,7 +55,11 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
-            implementation(libs.navigation.compose)
+            // The JetBrains-published KMP fork, not the mainline androidx.navigation:navigation-
+            // compose artifact - same androidx.navigation.* package (NavHost, composable,
+            // rememberNavController - no source changes needed), but the mainline artifact
+            // publishes no wasmJs variant at all, confirmed by a real Gradle resolution failure.
+            implementation(libs.navigation.compose.multiplatform)
         }
 
         androidMain.dependencies {
