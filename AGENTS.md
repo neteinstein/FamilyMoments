@@ -149,7 +149,7 @@ Each module that needs DI defines its own Koin module (`dataModule`, `homeModule
 
 ### Navigation
 
-Single `NavHost` in `app/.../navigation/AppNavigation.kt`, routes defined as a `sealed class Screen` in `Screen.kt` (`Splash`, `Home`, `Settings`). Splash pops itself off the back stack (`popUpTo(inclusive = true)`) once it navigates to Home. Shared across all three platforms via `app`'s `commonMain` — `androidx.navigation:navigation-compose` (2.10.1+) publishes Kotlin Multiplatform artifacts directly, so no separate JetBrains navigation fork is needed.
+Single `NavHost` in `app/.../navigation/AppNavigation.kt`, routes defined as a `sealed class Screen` in `Screen.kt` (`Splash`, `Home`, `Settings`). Splash pops itself off the back stack (`popUpTo(inclusive = true)`) once it navigates to Home. Shared across all three platforms via `app`'s `commonMain`, which depends on `org.jetbrains.androidx.navigation:navigation-compose` (`libs.navigation.compose.multiplatform`), **not** the mainline `androidx.navigation:navigation-compose` (`libs.navigation.compose`, still used directly by `androidApp` alone, where it's Android-only and therefore fine): the mainline artifact publishes Android/JVM/native variants but no wasmJs one (confirmed by a real Gradle resolution failure, not assumed) — the JetBrains fork exists specifically to cover that gap and publishes under the same `androidx.navigation.*` package, so no source-level changes are needed, only the Gradle coordinate.
 
 ### MVVM conventions
 
