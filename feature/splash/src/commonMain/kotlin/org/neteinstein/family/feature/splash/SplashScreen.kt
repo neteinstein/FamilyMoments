@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 import org.neteinstein.family.feature.splash.resources.Res
 import org.neteinstein.family.feature.splash.resources.splash_app_name
@@ -38,8 +39,16 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
     val scale = remember { Animatable(0.4f) }
     val alpha = remember { Animatable(0f) }
     val textAlpha = remember { Animatable(0f) }
+    val resourceEnvironment = rememberResourceEnvironment()
 
     LaunchedEffect(Unit) {
+        // Warm the logo artwork's resource cache first - see preloadFamilyMomentsLogo's doc
+        // comment for why this matters specifically on the web build. A failed prefetch (e.g. a
+        // dropped network request) isn't fatal - painterResource() still retries its own load
+        // inside FamilyMomentsLogo, this just loses the "avoid navigating away too soon" guarantee
+        // for that one run.
+        runCatching { preloadFamilyMomentsLogo(resourceEnvironment) }
+
         // Logo scale + fade in
         scale.animateTo(
             targetValue = 1f,

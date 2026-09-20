@@ -17,6 +17,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,8 +85,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -158,9 +166,20 @@ fun HomeScreen(
     }
     var isGridView by remember { mutableStateOf(false) }
     var showHideConfirmDialog by remember { mutableStateOf(false) }
+    val cardFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
         viewModel.onScreenEntered()
+    }
+
+    // Lets a physical keyboard (mainly relevant on the web build, where a mouse/trackpad is often
+    // the only other input) page through cards the same way a horizontal swipe does - Left/Right
+    // only mirrors the "swipe for a new question" hint's direction, not the vertical (focus/hide)
+    // gestures. Requesting focus once on entry is enough for the common case (landing on Home);
+    // it doesn't get reclaimed after e.g. the category dropdown takes it, matching how most web
+    // apps only capture keyboard shortcuts for the page they're currently focused on.
+    LaunchedEffect(Unit) {
+        cardFocusRequester.requestFocus()
     }
 
     PlatformBackHandler(enabled = fullScreenQuestion != null) { fullScreenQuestion = null }
@@ -169,7 +188,35 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .focusRequester(cardFocusRequester)
+                    .focusable()
+                    .onKeyEvent { event ->
+                        if (event.type != KeyEventType.KeyDown ||
+                            uiState.isLoading ||
+                            isGridView ||
+                            fullScreenQuestion != null
+                        ) {
+                            return@onKeyEvent false
+                        }
+                        when (event.key) {
+                            Key.DirectionLeft -> {
+                                swipeDirection = 1
+                                viewModel.previousQuestion()
+                                true
+                            }
+                            Key.DirectionRight -> {
+                                swipeDirection = -1
+                                viewModel.nextQuestion()
+                                true
+                            }
+                            else -> false
+                        }
+                    },
+        ) {
             // Decorative background gradient
             Box(
                 modifier =
