@@ -121,12 +121,27 @@ Obfuscated stack traces need the matching mapping file, and R8 emits a different
 > plus one test-only `core:domain` dependency for its coverage-stopgap test (see
 > `MainActivityViewModelTest.kt`'s comment). CI (Phase 8) builds and verifies all three platforms
 > on every PR - `Compile iOS` and `Compile Web` jobs alongside the Android ones - and every KMP
-> module has real coverage reporting via `kotlinx-kover`, not just `androidApp`'s own stopgap. Two
-> functional gaps remain outside this migration's original scope, not yet addressed: iOS and
+> module has real coverage reporting via `kotlinx-kover`, not just `androidApp`'s own stopgap. One
+> functional gap remains outside this migration's original scope, not yet addressed: iOS and
 > wasmJs both persist question/card data in memory only (no Room/browser-storage-backed
-> implementation - see `QuestionLocalDataSourceImpl`'s doc comment on each platform), and the
-> planned `build-logic` convention plugins to DRY the repeated `kotlin { androidTarget(); ... }`
-> block across modules were never introduced.
+> implementation - see `QuestionLocalDataSourceImpl`'s doc comment on each platform).
+>
+> **`build-logic` convention plugins:** the repeated `kotlin { jvmToolchain(17); android { compileSdk
+> = 37; minSdk = 32 }; iosArm64(); iosSimulatorArm64(); wasmJs { browser() } }` shape every
+> `core:*`/`feature:*`/`app` module needed, plus the identical `ktlint { reporters { ... } }` block
+> every module (including `androidApp`/`webApp`) needed, now live in `build-logic` (an included
+> build, wired up via `pluginManagement { includeBuild("build-logic") }` in the root
+> `settings.gradle.kts`) as precompiled script plugins under `build-logic/src/main/kotlin/`:
+> `familymoments.ktlint` (ktlint reporter config alone - applied by every module),
+> `familymoments.kmp.library` (adds the Kotlin Multiplatform/Android-KMP-library/Kover plugins plus
+> the shared target shape - applied by `core:domain`/`core:data`), and
+> `familymoments.kmp.compose.library` (adds Compose Multiplatform on top - applied by
+> `core:ui`/`feature:splash`/`feature:home`/`feature:settings`/`app`). Each consuming module's own
+> `build.gradle.kts` reopens `kotlin { android { ... } }` only for what's actually specific to it -
+> `namespace`, `withHostTestBuilder`/`androidResources` config, and its `sourceSets { }`
+> dependencies. `webApp` (wasmJs-only, no Android/iOS target) and `androidApp` (the one classic,
+> non-KMP module) apply only `familymoments.ktlint`, since their target shapes aren't shared with
+> the seven KMP modules.
 
 Gradle multi-module project, wired via `settings.gradle.kts`:
 
@@ -147,6 +162,8 @@ core/ui             # shared Compose theme (Color/Theme/Typography), exposes Com
 feature/splash      # splash screen (animated logo, auto-navigates after a delay)
 feature/home        # main question-card screen + HomeViewModel (the only feature with a ViewModel so far)
 feature/settings    # settings screen (language shortcut to system settings, about section)
+build-logic         # included build hosting the familymoments.* convention plugins (see the
+                     # "build-logic convention plugins" note above) - not part of the app itself
 ```
 
 **Dependency rules (enforced by module graph, not lint):**

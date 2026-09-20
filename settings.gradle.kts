@@ -1,4 +1,10 @@
 pluginManagement {
+    // Hosts the `familymoments.*` convention plugins (build-logic/src/main/kotlin) that every
+    // core:*/feature:*/app module applies instead of repeating the same
+    // `kotlin { androidTarget(); iosArm64(); ... }`/ktlint boilerplate - see AGENTS.md's KMP
+    // migration section.
+    includeBuild("build-logic")
+
     repositories {
         google {
             content {

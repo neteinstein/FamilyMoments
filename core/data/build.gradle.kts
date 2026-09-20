@@ -1,12 +1,8 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.kotlin.multiplatform.library)
+    id("familymoments.kmp.library")
     alias(libs.plugins.ksp)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.kover)
 }
 
 // Repository implementations + data sources - see AGENTS.md's KMP migration section.
@@ -17,23 +13,11 @@ plugins {
 // instead - see that interface's doc comment. The GitHub self-update feature is Android-only
 // outright (APK sideloading has no iOS/Web equivalent) - see platformUpdateModule's actuals.
 kotlin {
-    jvmToolchain(17)
-
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     android {
         namespace = "org.neteinstein.family.data"
-        compileSdk = 37
-        minSdk = 32
 
         withHostTestBuilder {}.configure {}
-    }
-
-    iosArm64()
-    iosSimulatorArm64()
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
     }
 
     sourceSets {
@@ -79,11 +63,4 @@ kotlin {
 // ksp(...) dependency-configuration shorthand.
 dependencies {
     add("kspAndroid", libs.room.compiler)
-}
-
-ktlint {
-    reporters {
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
-    }
 }
