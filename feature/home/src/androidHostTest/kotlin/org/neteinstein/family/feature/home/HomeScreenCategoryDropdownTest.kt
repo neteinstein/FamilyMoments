@@ -4,9 +4,13 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.core.app.ApplicationProvider
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.setResourceReaderAndroidContext
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,6 +33,18 @@ import org.robolectric.annotation.Config
 class HomeScreenCategoryDropdownTest {
     @get:Rule
     val composeTestRule = createComposeRule()
+
+    // Compose Multiplatform's composeResources (stringResource(Res.string.*), used throughout
+    // HomeScreen) normally gets its Context from a ContentProvider that auto-registers at app
+    // startup - Robolectric doesn't run that registration, so without this every resource lookup
+    // throws MissingResourceException (see
+    // https://github.com/robolectric/robolectric/issues/9603). setResourceReaderAndroidContext is
+    // the library's own documented escape hatch for exactly this case.
+    @OptIn(ExperimentalResourceApi::class)
+    @Before
+    fun setUpComposeResourcesContext() {
+        setResourceReaderAndroidContext(ApplicationProvider.getApplicationContext())
+    }
 
     private fun buildViewModel(): HomeViewModel {
         val getQuestionsUseCase: GetQuestionsUseCase = mockk()

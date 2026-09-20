@@ -4,9 +4,13 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.core.app.ApplicationProvider
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.setResourceReaderAndroidContext
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,6 +28,14 @@ import org.robolectric.annotation.Config
 class HomeScreenGridViewTest {
     @get:Rule
     val composeTestRule = createComposeRule()
+
+    // See HomeScreenCategoryDropdownTest's identical setup for why this is needed
+    // (https://github.com/robolectric/robolectric/issues/9603).
+    @OptIn(ExperimentalResourceApi::class)
+    @Before
+    fun setUpComposeResourcesContext() {
+        setResourceReaderAndroidContext(ApplicationProvider.getApplicationContext())
+    }
 
     private val fakeQuestions =
         listOf(
