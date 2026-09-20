@@ -1,14 +1,15 @@
 name: Deploy Web (GitHub Pages)
 
-# Deploys webApp's wasmJs production build to GitHub Pages on every push to `kmp` - lets the
-# in-progress KMP+CMP migration (see AGENTS.md) be checked in a browser without a local Kotlin/Wasm
-# toolchain. TEMPORARY: once the migration lands on `main`, switch the branch trigger below (and
-# GitHub Pages' own source branch, if it's pinned rather than driven by this workflow) from `kmp`
-# to `main`.
+# Deploys webApp's wasmJs production build to GitHub Pages on every push to `main`. Requires repo
+# Settings -> Pages -> Build and deployment -> Source to be set to "GitHub Actions" (not "Deploy
+# from a branch") - the deploy job below publishes via actions/deploy-pages, which only takes
+# effect under that source setting. The custom domain (family.loopgain.org) is configured
+# separately in that same Settings -> Pages screen and is unrelated to the root CNAME file - an
+# Actions-sourced deployment ignores any CNAME file in the repo or build artifact entirely.
 
 on:
   push:
-    branches: [ kmp ]
+    branches: [ main ]
   workflow_dispatch: {}
 
 concurrency:

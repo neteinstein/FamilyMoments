@@ -98,13 +98,13 @@ Obfuscated stack traces need the matching mapping file, and R8 emits a different
 
 ## Architecture
 
-> **KMP migration in progress** (`kmp` branch, not yet merged to `main`): this repo is being
-> migrated to Kotlin Multiplatform + Compose Multiplatform, targeting Android + iOS + Web (wasmJs),
-> following the pattern in `neteinstein/loopgain`. The module table and conventions below describe
-> the pre-migration, Android-only state and are being updated module-by-module as the migration
-> proceeds — see the plan this migration follows for the target module graph and phasing. Until the
-> migration reaches `feature:*`, everything below remains accurate for the still fully-functional
-> `androidApp` module (renamed from `app`, otherwise unchanged).
+> **KMP migration in progress** (merged to `main`, Phases 1-5/8 done): this repo is being migrated
+> to Kotlin Multiplatform + Compose Multiplatform, targeting Android + iOS + Web (wasmJs),
+> following the pattern in `neteinstein/loopgain`. `core:domain`, `core:data`, `core:ui`,
+> `feature:splash`, `feature:settings`, and `feature:home` are already converted. `app` (the
+> future KMP aggregator module) and `androidApp` (the still fully-functional, not-yet-slimmed-down
+> Android entry point) remain Phase 6/7 work — the module table and conventions below describe the
+> pre-Phase-6 state and are being updated module-by-module as the migration proceeds.
 
 Gradle multi-module project, wired via `settings.gradle.kts`:
 
