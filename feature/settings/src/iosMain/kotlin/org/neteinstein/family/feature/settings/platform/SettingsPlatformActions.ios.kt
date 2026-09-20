@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import platform.Foundation.NSBundle
 
 @Composable
-actual fun rememberOpenLanguageSettingsAction(): () -> Unit = {}
+actual fun rememberOpenLanguageSettingsAction(): (() -> Unit)? = null
 
 @Composable
 actual fun rememberCurrentVersionName(): String {

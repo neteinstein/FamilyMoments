@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
-actual fun rememberOpenLanguageSettingsAction(): () -> Unit {
+actual fun rememberOpenLanguageSettingsAction(): (() -> Unit)? {
     val context = LocalContext.current
     return remember(context) { { context.startActivity(Intent(Settings.ACTION_LOCALE_SETTINGS)) } }
 }
