@@ -26,6 +26,7 @@ import org.neteinstein.family.domain.usecase.GetRandomQuestionUseCase
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
 import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.MarkQuestionUsedUseCase
+import org.neteinstein.family.domain.usecase.ObserveLanguageOverrideUseCase
 import org.neteinstein.family.domain.usecase.ResetUsedQuestionsUseCase
 import org.neteinstein.family.domain.usecase.SetLanguageOverrideUseCase
 import org.neteinstein.family.domain.usecase.SetThemeModeUseCase
@@ -48,6 +49,7 @@ val dataModule =
         factory { SetThemeModeUseCase(get()) }
         factory { GetContentLanguageUseCase(get(), get()) }
         factory { GetLanguageOverrideUseCase(get()) }
+        factory { ObserveLanguageOverrideUseCase(get()) }
         factory { SetLanguageOverrideUseCase(get()) }
         factory { GetRandomQuestionUseCase(get()) }
         factory { GetQuestionsUseCase(get()) }

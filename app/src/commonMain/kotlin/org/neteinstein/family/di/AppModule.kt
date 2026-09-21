@@ -20,7 +20,7 @@ fun appModule(updatesEnabled: Boolean): Module =
     module {
         single(named("updatesEnabled")) { updatesEnabled }
 
-        viewModel { MainActivityViewModel(get()) }
+        viewModel { MainActivityViewModel(get(), get(), get()) }
 
         includes(dataModule, homeModule, settingsModule)
     }

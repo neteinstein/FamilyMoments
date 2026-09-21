@@ -20,6 +20,13 @@ kotlin {
         androidResources {
             enable = true
         }
+
+        // ProvideAppLanguageTest renders real Compose UI (and real composeResources lookups) via
+        // Robolectric - needs Android resources on the test classpath, same as feature:home's
+        // screen tests.
+        withHostTestBuilder {}.configure {
+            isIncludeAndroidResources = true
+        }
     }
 
     sourceSets {
@@ -36,6 +43,19 @@ kotlin {
             // module's commonMain api surface. Feature modules that need Compose-scoped ViewModels
             // use Koin's koin-compose-viewmodel (koinViewModel()) instead, which is KMP-native.
             api(libs.lifecycle.runtime.compose)
+        }
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.robolectric)
+                implementation(libs.junit.ext)
+                // KotlinDependencyHandler (this block's receiver) has no platform() shorthand of
+                // its own, unlike a classic dependencies {} block - go through project.dependencies
+                // directly to get Gradle's BOM/platform semantics.
+                implementation(project.dependencies.platform(libs.compose.bom))
+                implementation(libs.compose.ui.test.junit4)
+                implementation(libs.compose.ui.test.manifest)
+            }
         }
         androidMain.dependencies {
             // WindowCompat (PlatformTheme.android.kt's status-bar icon appearance actual) lives
