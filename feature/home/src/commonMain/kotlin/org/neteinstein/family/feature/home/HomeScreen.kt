@@ -173,12 +173,15 @@ fun HomeScreen(
     }
 
     // Lets a physical keyboard (mainly relevant on the web build, where a mouse/trackpad is often
-    // the only other input) page through cards the same way a horizontal swipe does - Left/Right
-    // only mirrors the "swipe for a new question" hint's direction, not the vertical (focus/hide)
-    // gestures. Requesting focus once on entry is enough for the common case (landing on Home);
-    // it doesn't get reclaimed after e.g. the category dropdown takes it, matching how most web
-    // apps only capture keyboard shortcuts for the page they're currently focused on.
-    LaunchedEffect(Unit) {
+    // the only other input) page through cards the same way a swipe does: Left/Right mirrors the
+    // "swipe for a new question" hint on the card stack, and Up/Down steps to the previous/next
+    // card while one is shown full screen. The vertical (focus/hide) gestures on the stack itself
+    // have no key equivalent. Focus is requested on entry (landing on Home) and again whenever the
+    // full-screen view opens or closes, since the node that had it (e.g. the grid card that was
+    // tapped) may be gone by then; it isn't reclaimed after e.g. the category dropdown takes it,
+    // matching how most web apps only capture keyboard shortcuts for the page they're currently
+    // focused on.
+    LaunchedEffect(fullScreenQuestion != null) {
         cardFocusRequester.requestFocus()
     }
 
@@ -195,25 +198,38 @@ fun HomeScreen(
                     .focusRequester(cardFocusRequester)
                     .focusable()
                     .onKeyEvent { event ->
-                        if (event.type != KeyEventType.KeyDown ||
-                            uiState.isLoading ||
-                            isGridView ||
-                            fullScreenQuestion != null
-                        ) {
+                        if (event.type != KeyEventType.KeyDown || uiState.isLoading) {
                             return@onKeyEvent false
                         }
-                        when (event.key) {
-                            Key.DirectionLeft -> {
-                                swipeDirection = 1
-                                viewModel.previousQuestion()
-                                true
-                            }
-                            Key.DirectionRight -> {
-                                swipeDirection = -1
-                                viewModel.nextQuestion()
-                                true
-                            }
-                            else -> false
+                        val expandedQuestion = fullScreenQuestion
+                        when {
+                            expandedQuestion != null ->
+                                when (event.key) {
+                                    Key.DirectionUp -> {
+                                        uiState.questions.adjacentTo(expandedQuestion, step = -1)?.let { fullScreenQuestion = it }
+                                        true
+                                    }
+                                    Key.DirectionDown -> {
+                                        uiState.questions.adjacentTo(expandedQuestion, step = 1)?.let { fullScreenQuestion = it }
+                                        true
+                                    }
+                                    else -> false
+                                }
+                            isGridView -> false
+                            else ->
+                                when (event.key) {
+                                    Key.DirectionLeft -> {
+                                        swipeDirection = 1
+                                        viewModel.previousQuestion()
+                                        true
+                                    }
+                                    Key.DirectionRight -> {
+                                        swipeDirection = -1
+                                        viewModel.nextQuestion()
+                                        true
+                                    }
+                                    else -> false
+                                }
                         }
                     },
         ) {
@@ -396,6 +412,21 @@ fun HomeScreen(
             },
         )
     }
+}
+
+/**
+ * The question [step] positions away from [current] in this list, wrapping around at either end.
+ * Falls back to the first (forward) or last (backward) question when [current] isn't in the list
+ * any more, e.g. it was hidden while it was on screen.
+ */
+private fun List<Question>.adjacentTo(
+    current: Question,
+    step: Int,
+): Question? {
+    if (isEmpty()) return null
+    val index = indexOfFirst { it.id == current.id }
+    if (index == -1) return if (step > 0) first() else last()
+    return this[(index + step).mod(size)]
 }
 
 @Composable
