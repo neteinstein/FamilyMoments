@@ -176,7 +176,16 @@ build-logic         # included build hosting the familymoments.* convention plug
 
 `QuestionSeedData` (object in `core/data`, `core/data/src/main/kotlin/.../data/source/QuestionSeedData.kt`) holds hardcoded question lists per language (`en`, `pt`, `es`, `fr`, `de`) as the single content source, plus a `VERSION` constant. `QuestionRepositoryImpl` persists that content into a local Room database (`FamilyMomentsDatabase`/`CardDao`, `core/data/.../local/`) and implements `QuestionRepository` (the `core:domain` interface); there is no network layer. On first use each process, it compares `QuestionSeedData.VERSION` against what's stored in the single-row `seed_metadata` table (`SeedMetadataDao`) and, on any mismatch, fully deletes and reinserts every card — not just an additive insert — so a question added, edited, *or removed* from `QuestionSeedData` reaches already-installed devices; cards already hidden (see `UsedQuestionsRepositoryImpl`) are re-marked hidden by id after the replace so a version bump doesn't silently un-hide them. **Bump `QuestionSeedData.VERSION` any time you change its content**, and bump `FamilyMomentsDatabase`'s `@Database(version = ...)` (with an added `Migration`, never `fallbackToDestructiveMigration`) any time you change its schema. `GetQuestionsUseCase`/`GetRandomQuestionUseCase` sit on top of the repository interface and are what ViewModels actually call.
 
-Note: `androidApp/src/main/res/xml/locale_config.xml` only declares `en` and `pt` as app locales, even though the data source has content for `es`/`fr`/`de` too — check both places when changing supported languages.
+### Localization and language selection
+
+Supported languages live in one place, `core:domain`'s `AppLanguage` enum (`en`, `pt`, `es`, `fr`, `de`) — adding one means adding its `QuestionSeedData` content, a `composeResources/values-<code>/strings.xml` in every module that has strings (`core:ui`, `feature:home`, `feature:settings`, `feature:splash`), an entry in `androidApp/src/main/res/xml/locale_config.xml`, and the enum entry itself.
+
+Two separate things resolve a language at runtime, and both go through `GetContentLanguageUseCase`'s inputs:
+
+- **Question content** — `GetContentLanguageUseCase` (the in-app override if set, else the OS/browser locale via `LocaleProvider`, else English) is what `HomeViewModel`/`SettingsViewModel` pass to `GetQuestionsUseCase`.
+- **The app's own UI strings** — Compose Multiplatform resolves `stringResource` against the OS/browser locale only, so the in-app override has to be pushed into its resource lookups explicitly: `core:ui`'s `ProvideAppLanguage` wraps the whole UI in `app`'s `App()`, fed by `MainActivityViewModel.languageOverride` (backed by `ObserveLanguageOverrideUseCase`, so a pick in Settings re-resolves every string immediately). CMP exposes no public API for this, so that one file reaches into compose-resources' internal `LocalComposeEnvironment` — see its header comment, and `core:ui`'s `ProvideAppLanguageTest`, which fails if a CMP upgrade breaks the seam.
+
+How the language gets *picked* is platform-specific (see `feature:settings`'s `rememberOpenLanguageSettingsAction`): Android deep-links into the OS's own per-app language settings (which changes `LocaleProvider` itself, so no override is ever stored there), while iOS/Web — with no such settings page — get the in-app picker that writes `LanguagePreferenceRepository`'s override.
 
 ### DI wiring (Koin)
 
@@ -192,7 +201,6 @@ Single `NavHost` in `app/.../navigation/AppNavigation.kt`, routes defined as a `
 - Screens read state with `collectAsStateWithLifecycle()`, not `collectAsState()`.
 - ViewModels use `viewModelScope`, never `rememberCoroutineScope()`; no `Context` is passed into ViewModels.
 - Use cases are single-purpose, named verb+noun (`GetRandomQuestionUseCase`), and injected into ViewModels through Koin `factory { }`.
-- `SettingsScreen` currently has no ViewModel — it's a static/stateless screen that delegates to Android system settings for language changes.
 
 ### Theming
 
