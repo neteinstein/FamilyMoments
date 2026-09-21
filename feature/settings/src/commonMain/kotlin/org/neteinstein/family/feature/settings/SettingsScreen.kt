@@ -106,7 +106,8 @@ import org.neteinstein.family.feature.settings.resources.up_to_date_format
 import org.neteinstein.family.feature.settings.resources.update_button
 import org.neteinstein.family.feature.settings.resources.update_description
 
-private const val LOOPGAIN_URL = "https://loopgain.org"
+// The naked/apex domain (loopgain.org) doesn't resolve - only the www subdomain does.
+private const val LOOPGAIN_URL = "http://www.loopgain.org"
 private const val PEDRO_VICENTE_URL = "https://www.pedrovicente.pt"
 
 @OptIn(ExperimentalMaterial3Api::class)
