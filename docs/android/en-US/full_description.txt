@@ -1,6 +1,6 @@
 Family Moments hands you one thoughtful conversation starter at a time — swipe through a deck
 of questions built to spark real conversation with the people you love. No accounts, no backend,
-nothing leaving your device.
+and your answers never leave your device.
 
 HOW IT WORKS
 Swipe right for the next card, left for the previous one, up to focus a card full screen, or down
@@ -22,8 +22,10 @@ BUILT FOR REAL CONVERSATIONS, NOT JUST A DEMO
   interface is available in English and Portuguese, switchable anytime via Android's per-app
   language setting.
 • Light, dark, and system theme.
-• No accounts, no sign-in, no ads, and no data ever leaves your device — everything is stored
-  locally.
+• No accounts, no sign-in, and no ads. Your cards, theme and language are stored locally and
+  are never sent anywhere.
+• Anonymous usage analytics (which screens and actions get used) help improve the deck. No user
+  ID, no advertising ID, no question text — and a single switch in Settings turns it off.
 
 WHY THIS EXISTS
 The best family conversations rarely start on their own — someone has to ask the right question.

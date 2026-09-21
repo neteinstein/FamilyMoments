@@ -21,6 +21,10 @@ import org.koin.core.context.startKoin
  */
 fun doInitKoin() {
     startKoin {
-        modules(appModule(updatesEnabled = false))
+        // `distribution` is left null: iOS and Web have no distribution channels to report, so
+        // the analytics user property stays unset rather than carrying a placeholder. The
+        // `platform` property needs no argument here - see analyticsPlatformName's per-target
+        // actual.
+        modules(appModule(updatesEnabled = false, distribution = null))
     }
 }

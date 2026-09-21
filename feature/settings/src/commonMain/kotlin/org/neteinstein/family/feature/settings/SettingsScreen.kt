@@ -1,5 +1,6 @@
 package org.neteinstein.family.feature.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
@@ -39,6 +41,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -51,8 +54,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.LinkInteractionListener
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
@@ -89,6 +94,8 @@ import org.neteinstein.family.feature.settings.resources.section_app_preferences
 import org.neteinstein.family.feature.settings.resources.section_reset_cards
 import org.neteinstein.family.feature.settings.resources.section_updates
 import org.neteinstein.family.feature.settings.resources.settings_about_description
+import org.neteinstein.family.feature.settings.resources.settings_analytics_subtitle
+import org.neteinstein.family.feature.settings.resources.settings_analytics_title
 import org.neteinstein.family.feature.settings.resources.settings_app_title_format
 import org.neteinstein.family.feature.settings.resources.settings_language_automatic
 import org.neteinstein.family.feature.settings.resources.settings_language_subtitle
@@ -131,11 +138,15 @@ fun SettingsScreen(
     val appName = stringResource(Res.string.app_name)
     val loopGain = stringResource(Res.string.loopgain_name)
     val appTitle = stringResource(Res.string.settings_app_title_format, appName, loopGain)
+    val uriHandler = LocalUriHandler.current
     val annotatedAppTitle =
-        remember(appTitle, loopGain, linkStyles) {
+        remember(appTitle, loopGain, linkStyles, uriHandler) {
             buildAnnotatedString {
                 append(appTitle)
-                addUrlLink(appTitle, loopGain, LOOPGAIN_URL, linkStyles)
+                addUrlLink(appTitle, loopGain, LOOPGAIN_URL, linkStyles) {
+                    viewModel.onOutboundLinkClicked(SettingsViewModel.LINK_LOOPGAIN)
+                    uriHandler.openUri(LOOPGAIN_URL)
+                }
             }
         }
     val versionName = rememberCurrentVersionName()
@@ -228,6 +239,13 @@ fun SettingsScreen(
                             onLanguageSelected = viewModel::onLanguageSelected,
                         )
                     }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                    AnalyticsToggle(
+                        enabled = uiState.analyticsEnabled,
+                        onEnabledChanged = viewModel::onAnalyticsEnabledChanged,
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -325,7 +343,10 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                LoopGainFooter(modifier = Modifier.fillMaxWidth())
+                LoopGainFooter(
+                    onLinkClick = viewModel::onOutboundLinkClicked,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
@@ -486,7 +507,10 @@ private fun UpdateStatusRow(text: String) {
  * brand and the author each linking out to their own site.
  */
 @Composable
-private fun LoopGainFooter(modifier: Modifier = Modifier) {
+private fun LoopGainFooter(
+    onLinkClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val loopGain = stringResource(Res.string.loopgain_name)
     val author = stringResource(Res.string.pedro_vicente_name)
     val footer = stringResource(Res.string.settings_loopgain_footer, loopGain, author)
@@ -499,12 +523,19 @@ private fun LoopGainFooter(modifier: Modifier = Modifier) {
                 ),
         )
 
+    val uriHandler = LocalUriHandler.current
     val annotatedFooter =
-        remember(footer, loopGain, author, linkStyles) {
+        remember(footer, loopGain, author, linkStyles, uriHandler) {
             buildAnnotatedString {
                 append(footer)
-                addUrlLink(footer, loopGain, LOOPGAIN_URL, linkStyles)
-                addUrlLink(footer, author, PEDRO_VICENTE_URL, linkStyles)
+                addUrlLink(footer, loopGain, LOOPGAIN_URL, linkStyles) {
+                    onLinkClick(SettingsViewModel.LINK_LOOPGAIN)
+                    uriHandler.openUri(LOOPGAIN_URL)
+                }
+                addUrlLink(footer, author, PEDRO_VICENTE_URL, linkStyles) {
+                    onLinkClick(SettingsViewModel.LINK_PEDROVICENTE)
+                    uriHandler.openUri(PEDRO_VICENTE_URL)
+                }
             }
         }
 
@@ -520,20 +551,77 @@ private fun LoopGainFooter(modifier: Modifier = Modifier) {
 /**
  * Links the first occurrence of [label] in [text] to [url]. A translation that drops or rewrites
  * the placeholder simply keeps that part as plain text instead of blowing up on a bad range.
+ *
+ * Supplying a [LinkInteractionListener] replaces Compose's built-in "open this URL" behaviour
+ * rather than running alongside it, so [onClick] is responsible for opening the link itself - the
+ * callers hand it a lambda that reports the tap and then calls `UriHandler.openUri`.
  */
 private fun AnnotatedString.Builder.addUrlLink(
     text: String,
     label: String,
     url: String,
     styles: TextLinkStyles,
+    onClick: () -> Unit,
 ) {
     val start = text.indexOf(label)
     if (start < 0) return
-    addLink(LinkAnnotation.Url(url, styles), start, start + label.length)
+    addLink(
+        LinkAnnotation.Url(url, styles, LinkInteractionListener { onClick() }),
+        start,
+        start + label.length,
+    )
 }
 
 /** Lets the user force the app's appearance to light/dark, or follow the OS setting. */
 @OptIn(ExperimentalMaterial3Api::class)
+/**
+ * The "Share usage data" switch. Analytics is opt-out (see PRIVACY_POLICY.md), so this renders on
+ * by default; the whole row is clickable, not just the switch, since a ~50dp switch is an awkward
+ * target and the label is the part people aim at.
+ */
+@Composable
+private fun AnalyticsToggle(
+    enabled: Boolean,
+    onEnabledChanged: (Boolean) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { onEnabledChanged(!enabled) }
+                .padding(16.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.Analytics,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp),
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(Res.string.settings_analytics_title),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(Res.string.settings_analytics_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Switch(
+            checked = enabled,
+            // The row already handles the click; null here stops the switch from taking focus and
+            // announcing itself separately to a screen reader.
+            onCheckedChange = null,
+        )
+    }
+}
+
 @Composable
 private fun ThemeModeSelector(
     selected: ThemeMode,

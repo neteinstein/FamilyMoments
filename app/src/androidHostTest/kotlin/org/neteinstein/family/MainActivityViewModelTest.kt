@@ -17,8 +17,10 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.neteinstein.family.domain.analytics.AnalyticsTracker
 import org.neteinstein.family.domain.model.AppLanguage
 import org.neteinstein.family.domain.model.ThemeMode
+import org.neteinstein.family.domain.usecase.GetContentLanguageUseCase
 import org.neteinstein.family.domain.usecase.GetLanguageOverrideUseCase
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
 import org.neteinstein.family.domain.usecase.ObserveLanguageOverrideUseCase
@@ -31,6 +33,11 @@ class MainActivityViewModelTest {
     private val getThemeModeUseCase: GetThemeModeUseCase = mockk()
     private val getLanguageOverrideUseCase: GetLanguageOverrideUseCase = mockk()
     private val observeLanguageOverrideUseCase: ObserveLanguageOverrideUseCase = mockk()
+    private val getContentLanguageUseCase: GetContentLanguageUseCase = mockk()
+
+    // Relaxed: this ViewModel sets analytics user properties on construction and on every
+    // preference change, none of which these theme/language assertions are about.
+    private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private lateinit var viewModel: MainActivityViewModel
 
@@ -40,7 +47,17 @@ class MainActivityViewModelTest {
         every { getThemeModeUseCase() } returns themeModeFlow
         every { getLanguageOverrideUseCase() } returns languageOverrideFlow.value
         every { observeLanguageOverrideUseCase() } returns languageOverrideFlow
-        viewModel = MainActivityViewModel(getThemeModeUseCase, getLanguageOverrideUseCase, observeLanguageOverrideUseCase)
+        every { getContentLanguageUseCase() } returns "en"
+        viewModel =
+            MainActivityViewModel(
+                getThemeModeUseCase,
+                getLanguageOverrideUseCase,
+                observeLanguageOverrideUseCase,
+                getContentLanguageUseCase,
+                analyticsTracker,
+                platform = "android",
+                distribution = "github",
+            )
     }
 
     @After

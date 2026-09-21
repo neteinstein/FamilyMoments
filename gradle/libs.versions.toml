@@ -33,6 +33,13 @@ playPublisher = "4.1.1"
 # Compose Multiplatform - pinned to the exact Kotlin 2.4.10 pairing already validated in
 # neteinstein/loopgain (the reference KMP+CMP app this migration follows).
 composeMultiplatform = "1.11.1"
+# Firebase Analytics (Android). The google-services plugin turns androidApp/google-services.json
+# into the string resources firebase-common's FirebaseInitProvider reads at startup; the BOM pins
+# every com.google.firebase artifact to one mutually-compatible set, so firebase-analytics below
+# carries no version of its own. Both are deliberately optional at build time - see androidApp/
+# build.gradle.kts's conditional plugin application and FirebaseAnalyticsTracker's kdoc.
+googleServices = "4.5.0"
+firebaseBom = "34.19.0"
 
 [libraries]
 # Compose BOM
@@ -99,6 +106,10 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
+# Firebase (Android only - iOS/wasmJs get their own AnalyticsTracker actuals, see core:data)
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+
 # DataStore
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
@@ -113,3 +124,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
 play-publisher = { id = "com.github.triplet.play", version.ref = "playPublisher" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

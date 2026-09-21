@@ -7,6 +7,11 @@ plugins {
     alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.play.publisher) apply false
+    // Never applied here, only put on the build classpath: androidApp applies it conditionally
+    // (see its build.gradle.kts), because the plugin hard-fails a build when google-services.json
+    // is absent and that file is git-ignored - a clean checkout, a fork, and a fork-originated PR
+    // must all still compile without it.
+    alias(libs.plugins.google.services) apply false
     // Applied for real (not `apply false`) - unlike the plugins above, this root project is
     // itself the Kover "merging module" that aggregates coverage from the KMP modules listed
     // below, via `kover(project(...))` dependencies. AGP's classic `enableUnitTestCoverage`

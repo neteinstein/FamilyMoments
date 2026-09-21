@@ -4,6 +4,8 @@
     <string name="section_app_preferences">App-Einstellungen</string>
     <string name="settings_theme_title">Erscheinungsbild</string>
     <string name="settings_theme_subtitle">Wähle, wie die App aussieht</string>
+    <string name="settings_analytics_title">Nutzungsdaten teilen</string>
+    <string name="settings_analytics_subtitle">Hilft, die App mit anonymen Nutzungsstatistiken zu verbessern. Niemals personenbezogene Daten.</string>
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Hell</string>
     <string name="settings_theme_dark">Dunkel</string>

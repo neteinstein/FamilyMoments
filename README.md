@@ -4,9 +4,11 @@ Spark deeper conversations with the people you love.
 
 Family Moments is an Android app that hands you one thoughtful question at a time — swipe through
 a deck of conversation starters across five categories (Ice Breakers, Memories, Values, Future
-Dreams, Daily Life), pick a card at random, or browse the whole deck as a grid. Everything runs
-entirely on-device: there's no account, no backend, and no network access beyond an optional
-version check against this repo's own GitHub Releases.
+Dreams, Daily Life), pick a card at random, or browse the whole deck as a grid. Your content
+stays on-device: there's no account and no backend of its own. The app reports anonymous usage
+analytics to Firebase (which screens and actions get used, never any text you read or type), and
+the GitHub build can check this repo's own Releases for an update. Both are described in
+[`PRIVACY_POLICY.md`](PRIVACY_POLICY.md), and analytics can be turned off in Settings.
 
 ## Features
 
@@ -22,13 +24,17 @@ version check against this repo's own GitHub Releases.
   German (`en`/`pt` are currently exposed as selectable app languages via Android's per-app
   language picker; see `app/src/main/res/xml/locale_config.xml`).
 - **Reset cards** — Settings has a one-tap reset that brings every hidden card back into rotation.
+- **Usage analytics, opt-out** — Firebase Analytics records which screens and actions get used so
+  the deck can be improved; Settings' "Share usage data" switch turns it off. No user ID, no
+  advertising ID, no question text — see [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md).
 - **Self-updating** — Settings' "Update to latest" button checks this repo's GitHub Releases and
   installs a newer APK directly, no Play Store required.
 
 ## Requirements
 
 - Android 12+ (API 32) device or emulator.
-- No accounts, API keys, or build-time secrets — a clean checkout compiles and runs as-is.
+- No accounts or build-time secrets required — a clean checkout compiles and runs as-is, with
+  analytics simply disabled (see Setup below).
 
 ## Setup
 
@@ -40,6 +46,24 @@ cd FamilyMoments
 ```
 
 Or open the project directly in Android Studio and run it from there.
+
+### Firebase Analytics (optional)
+
+A clean checkout builds and runs with analytics disabled — the Firebase config files are
+deliberately git-ignored, and both the Android and Web builds fall back to a no-op tracker when
+they're absent. To build against a real Firebase project, drop in your own config:
+
+| File | Where to get it |
+|---|---|
+| `androidApp/google-services.json` | Firebase console → Project settings → your Android app → `google-services.json` |
+| `webApp/firebase-web-config.json` | Firebase console → Project settings → your Web app → the `firebaseConfig` object, saved as JSON |
+
+Both are listed in `.gitignore`; CI supplies them through the `GOOGLE_SERVICES_JSON` (base64) and
+`FIREBASE_WEB_CONFIG` (raw JSON) repository secrets. Note these values are *client identifiers*,
+not secrets — they ship inside the APK and the JS bundle either way — so what actually protects a
+Firebase project is restricting each API key in the Google Cloud console (Android key pinned to the
+package name + signing SHA-1, browser key pinned to HTTP referrers). See
+[`AGENTS.md`](AGENTS.md#firebase-analytics) for the full setup.
 
 ## Usage
 

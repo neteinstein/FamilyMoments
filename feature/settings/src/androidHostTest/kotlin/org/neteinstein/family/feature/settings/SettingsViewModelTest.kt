@@ -17,6 +17,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.neteinstein.family.domain.analytics.ANALYTICS_VALUE_AUTOMATIC
+import org.neteinstein.family.domain.analytics.AnalyticsEvents
+import org.neteinstein.family.domain.analytics.AnalyticsParams
+import org.neteinstein.family.domain.analytics.AnalyticsTracker
 import org.neteinstein.family.domain.model.AppLanguage
 import org.neteinstein.family.domain.model.AppUpdate
 import org.neteinstein.family.domain.model.Question
@@ -26,12 +30,14 @@ import org.neteinstein.family.domain.model.UpdateCheckResult
 import org.neteinstein.family.domain.repository.AppUpdateInstaller
 import org.neteinstein.family.domain.usecase.CheckForUpdateUseCase
 import org.neteinstein.family.domain.usecase.DownloadAppUpdateUseCase
+import org.neteinstein.family.domain.usecase.GetAnalyticsEnabledUseCase
 import org.neteinstein.family.domain.usecase.GetContentLanguageUseCase
 import org.neteinstein.family.domain.usecase.GetLanguageOverrideUseCase
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetThemeModeUseCase
 import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.ResetUsedQuestionsUseCase
+import org.neteinstein.family.domain.usecase.SetAnalyticsEnabledUseCase
 import org.neteinstein.family.domain.usecase.SetLanguageOverrideUseCase
 import org.neteinstein.family.domain.usecase.SetThemeModeUseCase
 import java.io.File
@@ -59,6 +65,13 @@ class SettingsViewModelTest {
             Question(id = 2, text = "Q2", languageCode = "en", category = QuestionCategory.IceBreakers),
         )
 
+    private val getAnalyticsEnabledUseCase: GetAnalyticsEnabledUseCase = mockk()
+    private val setAnalyticsEnabledUseCase: SetAnalyticsEnabledUseCase = mockk()
+
+    // Relaxed: most of these tests are about update/reset/theme behaviour and don't care that
+    // those paths now also report an event. The analytics assertions live in their own tests.
+    private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
+
     private lateinit var viewModel: SettingsViewModel
 
     @Before
@@ -67,6 +80,8 @@ class SettingsViewModelTest {
         every { getThemeModeUseCase() } returns themeModeFlow
         every { getContentLanguageUseCase() } returns "en"
         every { getLanguageOverrideUseCase() } returns null
+        every { getAnalyticsEnabledUseCase() } returns true
+        coEvery { setAnalyticsEnabledUseCase(any()) } returns Unit
         coEvery { getQuestionsUseCase("en") } returns questions
         coEvery { getUsedQuestionIdsUseCase() } returns emptySet()
         viewModel =
@@ -82,6 +97,9 @@ class SettingsViewModelTest {
                 getContentLanguageUseCase,
                 getLanguageOverrideUseCase,
                 setLanguageOverrideUseCase,
+                getAnalyticsEnabledUseCase,
+                setAnalyticsEnabledUseCase,
+                analyticsTracker,
             )
     }
 
@@ -240,6 +258,9 @@ class SettingsViewModelTest {
                     getContentLanguageUseCase,
                     getLanguageOverrideUseCase,
                     setLanguageOverrideUseCase,
+                    getAnalyticsEnabledUseCase,
+                    setAnalyticsEnabledUseCase,
+                    analyticsTracker,
                     updatesEnabled = false,
                 )
 
@@ -301,4 +322,134 @@ class SettingsViewModelTest {
 
             coVerify { setThemeModeUseCase(ThemeMode.LIGHT) }
         }
+
+    @Test
+    fun `the analytics switch starts at the persisted choice`() {
+        every { getAnalyticsEnabledUseCase() } returns false
+
+        val optedOut =
+            SettingsViewModel(
+                checkForUpdateUseCase,
+                downloadAppUpdateUseCase,
+                appUpdateInstaller,
+                resetUsedQuestionsUseCase,
+                getThemeModeUseCase,
+                setThemeModeUseCase,
+                getQuestionsUseCase,
+                getUsedQuestionIdsUseCase,
+                getContentLanguageUseCase,
+                getLanguageOverrideUseCase,
+                setLanguageOverrideUseCase,
+                getAnalyticsEnabledUseCase,
+                setAnalyticsEnabledUseCase,
+                analyticsTracker,
+            )
+
+        assertEquals(false, optedOut.uiState.value.analyticsEnabled)
+    }
+
+    /**
+     * Driving the tracker before the suspending write is what makes an opt-out take effect
+     * immediately rather than after a round trip to storage - the assertion on ordering is the
+     * point, not an implementation detail.
+     */
+    @Test
+    fun `opting out stops the SDK before persisting the choice`() =
+        runTest {
+            viewModel.onAnalyticsEnabledChanged(false)
+
+            verify { analyticsTracker.setCollectionEnabled(false) }
+            assertEquals(false, viewModel.uiState.value.analyticsEnabled)
+
+            testDispatcher.scheduler.advanceUntilIdle()
+            coVerify { setAnalyticsEnabledUseCase(false) }
+        }
+
+    @Test
+    fun `opting back in restarts the SDK and persists the choice`() =
+        runTest {
+            viewModel.onAnalyticsEnabledChanged(true)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            verify { analyticsTracker.setCollectionEnabled(true) }
+            coVerify { setAnalyticsEnabledUseCase(true) }
+            assertEquals(true, viewModel.uiState.value.analyticsEnabled)
+        }
+
+    @Test
+    fun `onThemeModeSelected reports the chosen mode`() =
+        runTest {
+            viewModel.onThemeModeSelected(ThemeMode.DARK)
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.THEME_CHANGED,
+                    mapOf(AnalyticsParams.THEME_MODE to "dark"),
+                )
+            }
+        }
+
+    @Test
+    fun `onLanguageSelected reports the chosen language code`() =
+        runTest {
+            coEvery { setLanguageOverrideUseCase(any()) } returns Unit
+
+            viewModel.onLanguageSelected(AppLanguage.FRENCH)
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.LANGUAGE_CHANGED,
+                    mapOf(AnalyticsParams.LANGUAGE to "fr"),
+                )
+            }
+        }
+
+    @Test
+    fun `onLanguageSelected reports clearing the override as automatic`() =
+        runTest {
+            coEvery { setLanguageOverrideUseCase(any()) } returns Unit
+
+            viewModel.onLanguageSelected(null)
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.LANGUAGE_CHANGED,
+                    mapOf(AnalyticsParams.LANGUAGE to ANALYTICS_VALUE_AUTOMATIC),
+                )
+            }
+        }
+
+    @Test
+    fun `onResetCardsClicked reports how many cards were hidden beforehand`() =
+        runTest {
+            coEvery { getUsedQuestionIdsUseCase() } returns setOf(1, 2, 3)
+            coEvery { resetUsedQuestionsUseCase() } returns Unit
+            // onScreenEntered is the only thing that populates hiddenCardsCount, and it also kicks
+            // off the background update check - which needs a stub here even though this test is
+            // about neither.
+            coEvery { checkForUpdateUseCase() } returns Result.success(UpdateCheckResult.UpToDate("1.0.0"))
+            viewModel.onScreenEntered()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onResetCardsClicked()
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.CARDS_RESET,
+                    mapOf(AnalyticsParams.HIDDEN_COUNT_BEFORE to 3),
+                )
+            }
+        }
+
+    @Test
+    fun `onOutboundLinkClicked reports which link was tapped`() {
+        viewModel.onOutboundLinkClicked(SettingsViewModel.LINK_LOOPGAIN)
+
+        verify {
+            analyticsTracker.logEvent(
+                AnalyticsEvents.OUTBOUND_LINK_CLICKED,
+                mapOf(AnalyticsParams.LINK to "loopgain"),
+            )
+        }
+    }
 }
