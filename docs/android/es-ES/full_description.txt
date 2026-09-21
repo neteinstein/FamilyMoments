@@ -1,6 +1,6 @@
 Family Moments te muestra una pregunta a la vez — deslízate por un mazo de preguntas pensadas
-para generar conversaciones de verdad con las personas que quieres. Sin cuentas, sin servidor,
-nada sale de tu dispositivo.
+para generar conversaciones de verdad con las personas que quieres. Sin cuentas, sin servidor, y
+tus respuestas nunca salen de tu dispositivo.
 
 CÓMO FUNCIONA
 Desliza a la derecha para la siguiente pregunta, a la izquierda para la anterior, hacia arriba
@@ -23,8 +23,11 @@ PENSADA PARA CONVERSACIONES REALES, NO SOLO UNA DEMOSTRACIÓN
   de la app está disponible en inglés y portugués, y se puede cambiar en cualquier momento desde
   el selector de idioma por app de Android.
 • Tema claro, oscuro o del sistema.
-• Sin cuentas, sin inicio de sesión, sin anuncios, y ningún dato sale de tu dispositivo — todo se
-  guarda localmente.
+• Sin cuentas, sin inicio de sesión y sin anuncios. Tus tarjetas, tema e idioma se guardan
+  localmente y nunca se envían a ningún sitio.
+• Estadísticas de uso anónimas (qué pantallas y acciones se usan) ayudan a mejorar el mazo. Sin
+  identificador de usuario, sin ID de publicidad, sin el texto de las preguntas — y un único
+  interruptor en Ajustes lo desactiva.
 
 POR QUÉ EXISTE
 Las mejores conversaciones en familia rara vez empiezan solas — alguien tiene que hacer la

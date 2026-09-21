@@ -18,6 +18,12 @@
     </style>
 </head>
 <body>
+    <!-- Generated at build time from firebase-init.js.template (see webApp/build.gradle.kts).
+         Loaded before the app bundle so its call-buffering bridge is published on `window` before
+         any Kotlin code reports an event; being a module it still executes deferred, which is
+         exactly why that bridge buffers. A build with no Firebase config emits a stub here and
+         analytics is simply off. -->
+    <script type="module" src="firebase-init.js"></script>
     <script src="familymoments.js"></script>
 </body>
 </html>

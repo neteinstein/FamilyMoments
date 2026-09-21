@@ -47,6 +47,12 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build wasmJs production distribution
+        # webApp/build.gradle.kts reads this straight from the environment and renders it into the
+        # generated firebase-init.js. Without it the deployed site simply has analytics disabled -
+        # so this deliberately does not fail the deploy, unlike the Android release build, because
+        # a site that is up without analytics beats a site that is down.
+        env:
+          FIREBASE_WEB_CONFIG: ${{ secrets.FIREBASE_WEB_CONFIG }}
         run: ./gradlew :webApp:wasmJsBrowserDistribution --no-daemon --stacktrace
 
       - name: Setup Pages

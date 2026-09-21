@@ -45,12 +45,17 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           missing=()
           [ -z "$KEYSTORE_BASE64" ] && missing+=("KEYSTORE_BASE64")
           [ -z "$KEYSTORE_PASSWORD" ] && missing+=("KEYSTORE_PASSWORD")
           [ -z "$KEY_ALIAS" ] && missing+=("KEY_ALIAS")
           [ -z "$KEY_PASSWORD" ] && missing+=("KEY_PASSWORD")
+          # Required here, unlike in pr.yml where it's optional: a release that silently ships
+          # without Firebase would look completely healthy and simply report nothing, for the whole
+          # life of that version. Failing loudly is the lesser problem.
+          [ -z "$GOOGLE_SERVICES_JSON" ] && missing+=("GOOGLE_SERVICES_JSON")
           if [ ${#missing[@]} -ne 0 ]; then
             echo "::error::Missing required Action secrets: ${missing[*]}"
             exit 1
@@ -59,6 +64,14 @@ jobs:
       # PR Checks (pr.yml) validates the PR branch/merge ref, but a squash- or rebase-merge lands
       # a commit on main that was never itself built or tested, so this is the only gate that
       # actually covers the exact commit about to be released.
+      # Base64-encoded so the JSON survives being a single-line Action secret, matching how the
+      # signing keystore is handled below. The file is git-ignored - see .gitignore and AGENTS.md's
+      # Firebase Analytics section - so this is the only way it reaches a CI build.
+      - name: Decode google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: echo "$GOOGLE_SERVICES_JSON" | base64 --decode > androidApp/google-services.json
+
       - name: Run ktlint
         run: ./gradlew ktlintCheck --console=plain --no-daemon --stacktrace
 

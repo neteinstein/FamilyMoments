@@ -31,6 +31,13 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.room.runtime)
             implementation(libs.room.ktx)
+            // Firebase Analytics lives here, with the rest of this module's platform actuals,
+            // rather than in androidApp - only the google-services *plugin* needs to sit on the
+            // application module (it generates the google_app_id string resource that
+            // FirebaseInitProvider reads from the merged app resources at startup). The BOM keeps
+            // every com.google.firebase artifact on one mutually-compatible version.
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.analytics)
         }
 
         commonTest.dependencies {

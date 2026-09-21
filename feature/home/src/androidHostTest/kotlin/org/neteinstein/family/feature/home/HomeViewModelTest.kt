@@ -4,6 +4,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -16,6 +17,13 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
+import org.neteinstein.family.domain.analytics.ANALYTICS_VALUE_ALL
+import org.neteinstein.family.domain.analytics.AnalyticsEvents
+import org.neteinstein.family.domain.analytics.AnalyticsParams
+import org.neteinstein.family.domain.analytics.AnalyticsScreens
+import org.neteinstein.family.domain.analytics.AnalyticsTracker
+import org.neteinstein.family.domain.analytics.AnalyticsUserProperties
+import org.neteinstein.family.domain.analytics.analyticsName
 import org.neteinstein.family.domain.model.Question
 import org.neteinstein.family.domain.model.QuestionCategory
 import org.neteinstein.family.domain.usecase.GetContentLanguageUseCase
@@ -32,6 +40,10 @@ class HomeViewModelTest {
     private val markQuestionUsedUseCase: MarkQuestionUsedUseCase = mockk()
 
     private lateinit var viewModel: HomeViewModel
+
+    // Relaxed: every ViewModel method now reports something, and the assertions that care about
+    // analytics live in the dedicated tests below rather than in every unrelated one.
+    private val analyticsTracker: AnalyticsTracker = mockk(relaxed = true)
 
     private val fakeQuestions =
         listOf(
@@ -53,6 +65,7 @@ class HomeViewModelTest {
                 getContentLanguageUseCase,
                 getUsedQuestionIdsUseCase,
                 markQuestionUsedUseCase,
+                analyticsTracker,
             )
     }
 
@@ -150,6 +163,7 @@ class HomeViewModelTest {
                     getContentLanguageUseCase,
                     getUsedQuestionIdsUseCase,
                     markQuestionUsedUseCase,
+                    analyticsTracker,
                 )
             testDispatcher.scheduler.advanceUntilIdle()
 
@@ -279,4 +293,180 @@ class HomeViewModelTest {
             assertEquals(fakeQuestions.size - 1, state.totalQuestions)
             assertFalse(state.currentQuestion?.id == 2)
         }
+
+    @Test
+    fun `nextQuestion reports the direction and defaults the input to swipe`() =
+        runTest {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.nextQuestion()
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.DECK_NAVIGATED,
+                    mapOf(
+                        AnalyticsParams.DIRECTION to HomeViewModel.DIRECTION_NEXT,
+                        AnalyticsParams.INPUT to HomeViewModel.INPUT_SWIPE,
+                    ),
+                )
+            }
+        }
+
+    @Test
+    fun `previousQuestion reports the keyboard input when told to`() =
+        runTest {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.previousQuestion(HomeViewModel.INPUT_KEYBOARD)
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.DECK_NAVIGATED,
+                    mapOf(
+                        AnalyticsParams.DIRECTION to HomeViewModel.DIRECTION_PREVIOUS,
+                        AnalyticsParams.INPUT to HomeViewModel.INPUT_KEYBOARD,
+                    ),
+                )
+            }
+        }
+
+    @Test
+    fun `an empty deck reports no navigation at all`() =
+        runTest {
+            coEvery { getQuestionsUseCase(any()) } returns emptyList()
+            val emptyViewModel =
+                HomeViewModel(
+                    getQuestionsUseCase,
+                    getContentLanguageUseCase,
+                    getUsedQuestionIdsUseCase,
+                    markQuestionUsedUseCase,
+                    analyticsTracker,
+                )
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            emptyViewModel.nextQuestion()
+            emptyViewModel.previousQuestion()
+
+            verify(exactly = 0) { analyticsTracker.logEvent(AnalyticsEvents.DECK_NAVIGATED, any()) }
+        }
+
+    @Test
+    fun `onCategorySelected reports the chosen category`() =
+        runTest {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onCategorySelected(QuestionCategory.Memories)
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.CATEGORY_SELECTED,
+                    mapOf(AnalyticsParams.CATEGORY to "memories"),
+                )
+            }
+        }
+
+    @Test
+    fun `onCategorySelected reports the All filter as a real value, not null`() =
+        runTest {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onCategorySelected(null)
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.CATEGORY_SELECTED,
+                    mapOf(AnalyticsParams.CATEGORY to ANALYTICS_VALUE_ALL),
+                )
+            }
+        }
+
+    @Test
+    fun `markCurrentQuestionAsUsed reports the hidden question and buckets the running total`() =
+        runTest {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val hidden = viewModel.uiState.value.currentQuestion!!
+
+            viewModel.markCurrentQuestionAsUsed()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.QUESTION_HIDDEN,
+                    mapOf(
+                        AnalyticsParams.QUESTION_ID to hidden.id,
+                        AnalyticsParams.CATEGORY to hidden.category.analyticsName(),
+                        AnalyticsParams.HIDDEN_TOTAL to 1,
+                    ),
+                )
+                analyticsTracker.setUserProperty(AnalyticsUserProperties.HIDDEN_CARDS_BUCKET, "1_10")
+            }
+        }
+
+    @Test
+    fun `onShuffleClicked reports the current filter and deck size`() =
+        runTest {
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onShuffleClicked()
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.SHUFFLE_USED,
+                    mapOf(
+                        AnalyticsParams.CATEGORY to ANALYTICS_VALUE_ALL,
+                        AnalyticsParams.DECK_SIZE to fakeQuestions.size,
+                    ),
+                )
+            }
+        }
+
+    @Test
+    fun `onViewModeToggled reports the mode and the matching pseudo-screen`() =
+        runTest {
+            viewModel.onViewModeToggled(HomeViewModel.MODE_GRID)
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.VIEW_MODE_CHANGED,
+                    mapOf(AnalyticsParams.MODE to HomeViewModel.MODE_GRID),
+                )
+                analyticsTracker.logScreenView(AnalyticsScreens.HOME_GRID)
+            }
+        }
+
+    @Test
+    fun `switching back out of grid view reports the Home screen again`() =
+        runTest {
+            viewModel.onViewModeToggled(HomeViewModel.MODE_SWIPE)
+
+            verify { analyticsTracker.logScreenView(AnalyticsScreens.HOME) }
+        }
+
+    @Test
+    fun `onQuestionExpanded reports the source, the full-screen view and the question`() =
+        runTest {
+            testDispatcher.scheduler.advanceUntilIdle()
+            val question = fakeQuestions.first()
+
+            viewModel.onQuestionExpanded(question, HomeViewModel.SOURCE_GRID)
+
+            verify {
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.QUESTION_EXPANDED,
+                    mapOf(AnalyticsParams.SOURCE to HomeViewModel.SOURCE_GRID),
+                )
+                analyticsTracker.logScreenView(AnalyticsScreens.QUESTION_FULLSCREEN)
+                analyticsTracker.logEvent(
+                    AnalyticsEvents.QUESTION_VIEWED,
+                    match { it[AnalyticsParams.SOURCE] == HomeViewModel.SOURCE_GRID },
+                )
+            }
+        }
+
+    @Test
+    fun `onFullScreenClosed reports the Home screen again`() {
+        viewModel.onFullScreenClosed()
+
+        verify { analyticsTracker.logScreenView(AnalyticsScreens.HOME) }
+    }
 }

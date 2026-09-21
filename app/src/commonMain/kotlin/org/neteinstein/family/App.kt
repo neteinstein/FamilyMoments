@@ -4,13 +4,16 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
+import org.neteinstein.family.domain.analytics.AnalyticsScreens
 import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.navigation.AppNavigation
+import org.neteinstein.family.navigation.Screen
 import org.neteinstein.family.ui.components.InstallAppBanner
 import org.neteinstein.family.ui.locale.ProvideAppLanguage
 import org.neteinstein.family.ui.theme.FamilyMomentsTheme
@@ -39,9 +42,23 @@ fun App() {
     ProvideAppLanguage(languageCode = languageOverride?.code) {
         FamilyMomentsTheme(darkTheme = darkTheme, dynamicColor = false) {
             Column {
-                InstallAppBanner()
+                InstallAppBanner(onBannerAction = viewModel::onInstallBannerAction)
                 Box(modifier = Modifier.weight(1f)) {
                     val navController = rememberNavController()
+                    // One screen-tracking seam for all three platforms, rather than a call in
+                    // each screen composable. Only the three real destinations pass through here;
+                    // the grid and the full-screen card are local UI state inside HomeScreen, not
+                    // routes, so they report themselves (see AnalyticsScreens).
+                    LaunchedEffect(navController) {
+                        navController.currentBackStackEntryFlow.collect { entry ->
+                            when (entry.destination.route) {
+                                Screen.Splash.route -> viewModel.onScreenViewed(AnalyticsScreens.SPLASH)
+                                Screen.Home.route -> viewModel.onScreenViewed(AnalyticsScreens.HOME)
+                                Screen.Settings.route -> viewModel.onScreenViewed(AnalyticsScreens.SETTINGS)
+                                else -> Unit
+                            }
+                        }
+                    }
                     AppNavigation(navController = navController)
                 }
             }

@@ -185,7 +185,23 @@ fun HomeScreen(
         cardFocusRequester.requestFocus()
     }
 
-    PlatformBackHandler(enabled = fullScreenQuestion != null) { fullScreenQuestion = null }
+    // The three UI-only interactions below (shuffle, grid toggle, full-screen open/close) keep
+    // their state here but report through the ViewModel, so HomeScreen holds no logic of its own -
+    // see HomeViewModel.onShuffleClicked's kdoc.
+    fun openFullScreen(
+        question: Question?,
+        source: String,
+    ) {
+        fullScreenQuestion = question
+        question?.let { viewModel.onQuestionExpanded(it, source) }
+    }
+
+    fun closeFullScreen() {
+        fullScreenQuestion = null
+        viewModel.onFullScreenClosed()
+    }
+
+    PlatformBackHandler(enabled = fullScreenQuestion != null) { closeFullScreen() }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -206,11 +222,15 @@ fun HomeScreen(
                             expandedQuestion != null ->
                                 when (event.key) {
                                     Key.DirectionUp -> {
-                                        uiState.questions.adjacentTo(expandedQuestion, step = -1)?.let { fullScreenQuestion = it }
+                                        uiState.questions
+                                            .adjacentTo(expandedQuestion, step = -1)
+                                            ?.let { openFullScreen(it, HomeViewModel.SOURCE_FULLSCREEN_RANDOM) }
                                         true
                                     }
                                     Key.DirectionDown -> {
-                                        uiState.questions.adjacentTo(expandedQuestion, step = 1)?.let { fullScreenQuestion = it }
+                                        uiState.questions
+                                            .adjacentTo(expandedQuestion, step = 1)
+                                            ?.let { openFullScreen(it, HomeViewModel.SOURCE_FULLSCREEN_RANDOM) }
                                         true
                                     }
                                     else -> false
@@ -220,12 +240,12 @@ fun HomeScreen(
                                 when (event.key) {
                                     Key.DirectionLeft -> {
                                         swipeDirection = 1
-                                        viewModel.previousQuestion()
+                                        viewModel.previousQuestion(HomeViewModel.INPUT_KEYBOARD)
                                         true
                                     }
                                     Key.DirectionRight -> {
                                         swipeDirection = -1
-                                        viewModel.nextQuestion()
+                                        viewModel.nextQuestion(HomeViewModel.INPUT_KEYBOARD)
                                         true
                                     }
                                     else -> false
@@ -261,7 +281,10 @@ fun HomeScreen(
             ) {
                 // Top bar
                 HomeTopBar(
-                    onShuffleClick = { uiState.questions.randomOrNull()?.let { fullScreenQuestion = it } },
+                    onShuffleClick = {
+                        viewModel.onShuffleClicked()
+                        uiState.questions.randomOrNull()?.let { openFullScreen(it, HomeViewModel.SOURCE_SHUFFLE) }
+                    },
                     shuffleEnabled = uiState.questions.isNotEmpty(),
                     onSettingsClick = onSettingsClick,
                 )
@@ -294,7 +317,7 @@ fun HomeScreen(
                 } else if (isGridView) {
                     QuestionGrid(
                         questions = uiState.questions,
-                        onQuestionClick = { fullScreenQuestion = it },
+                        onQuestionClick = { openFullScreen(it, HomeViewModel.SOURCE_GRID) },
                         modifier = Modifier.weight(1f),
                     )
                 } else {
@@ -310,7 +333,7 @@ fun HomeScreen(
                             swipeDirection = 1
                             viewModel.previousQuestion()
                         },
-                        onSwipeUp = { fullScreenQuestion = uiState.currentQuestion },
+                        onSwipeUp = { openFullScreen(uiState.currentQuestion, HomeViewModel.SOURCE_SWIPE_UP) },
                         onSwipeDown = { showHideConfirmDialog = true },
                     )
                 }
@@ -344,7 +367,12 @@ fun HomeScreen(
 
             // View toggle (bottom right corner), hidden while a card is shown full screen.
             IconButton(
-                onClick = { isGridView = !isGridView },
+                onClick = {
+                    isGridView = !isGridView
+                    viewModel.onViewModeToggled(
+                        if (isGridView) HomeViewModel.MODE_GRID else HomeViewModel.MODE_SWIPE,
+                    )
+                },
                 modifier =
                     Modifier
                         .align(Alignment.BottomEnd)
@@ -382,8 +410,12 @@ fun HomeScreen(
             ) {
                 FullScreenQuestion(
                     question = lastFullScreenQuestion,
-                    onClose = { fullScreenQuestion = null },
-                    onRandomClick = { uiState.questions.randomOrNull()?.let { fullScreenQuestion = it } },
+                    onClose = { closeFullScreen() },
+                    onRandomClick = {
+                        uiState.questions.randomOrNull()?.let {
+                            openFullScreen(it, HomeViewModel.SOURCE_FULLSCREEN_RANDOM)
+                        }
+                    },
                     randomEnabled = uiState.questions.isNotEmpty(),
                 )
             }
