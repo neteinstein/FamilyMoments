@@ -1,13 +1,17 @@
 package org.neteinstein.family
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
 import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.navigation.AppNavigation
+import org.neteinstein.family.ui.components.InstallAppBanner
 import org.neteinstein.family.ui.theme.FamilyMomentsTheme
 
 /**
@@ -28,7 +32,12 @@ fun App() {
         }
 
     FamilyMomentsTheme(darkTheme = darkTheme, dynamicColor = false) {
-        val navController = rememberNavController()
-        AppNavigation(navController = navController)
+        Column {
+            InstallAppBanner()
+            Box(modifier = Modifier.weight(1f)) {
+                val navController = rememberNavController()
+                AppNavigation(navController = navController)
+            }
+        }
     }
 }
