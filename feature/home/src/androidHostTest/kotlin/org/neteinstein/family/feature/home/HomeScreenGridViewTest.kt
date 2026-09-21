@@ -1,9 +1,15 @@
 package org.neteinstein.family.feature.home
 
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
 import androidx.test.core.app.ApplicationProvider
 import io.mockk.coEvery
 import io.mockk.every
@@ -104,5 +110,72 @@ class HomeScreenGridViewTest {
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithContentDescription("Switch to grid view").assertExists()
+    }
+
+    // The grid keeps showing every card, so the expanded card is the second node with its text.
+    private fun openGridCardFullScreen(
+        viewModel: HomeViewModel,
+        index: Int,
+    ): List<String> {
+        composeTestRule.setContent {
+            FamilyMomentsTheme(darkTheme = false, dynamicColor = false) {
+                HomeScreen(onSettingsClick = {}, viewModel = viewModel)
+            }
+        }
+        composeTestRule.onNodeWithContentDescription("Switch to grid view").performClick()
+        composeTestRule.waitForIdle()
+        // The view model shuffles, so read back the order the arrow keys will step through.
+        val texts =
+            viewModel.uiState.value.questions
+                .map { it.text }
+        composeTestRule.onNodeWithText(texts[index]).performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.onAllNodesWithText(texts[index]).assertCountEquals(2)
+        return texts
+    }
+
+    private fun pressKey(key: Key) {
+        composeTestRule.onRoot().performKeyInput { pressKey(key) }
+        composeTestRule.waitForIdle()
+    }
+
+    @Test
+    fun `arrow down on an expanded card shows the next card and wraps around`() {
+        val texts = openGridCardFullScreen(buildViewModel(), index = 0)
+
+        pressKey(Key.DirectionDown)
+        composeTestRule.onAllNodesWithText(texts[1]).assertCountEquals(2)
+        composeTestRule.onAllNodesWithText(texts[0]).assertCountEquals(1)
+
+        pressKey(Key.DirectionDown)
+        pressKey(Key.DirectionDown)
+        composeTestRule.onAllNodesWithText(texts[0]).assertCountEquals(2)
+    }
+
+    @Test
+    fun `arrow up on an expanded card shows the previous card and wraps around`() {
+        val texts = openGridCardFullScreen(buildViewModel(), index = 0)
+
+        pressKey(Key.DirectionUp)
+        composeTestRule.onAllNodesWithText(texts[2]).assertCountEquals(2)
+        composeTestRule.onAllNodesWithText(texts[0]).assertCountEquals(1)
+
+        pressKey(Key.DirectionUp)
+        composeTestRule.onAllNodesWithText(texts[1]).assertCountEquals(2)
+    }
+
+    @Test
+    fun `arrow keys do nothing to the grid while no card is expanded`() {
+        composeTestRule.setContent {
+            FamilyMomentsTheme(darkTheme = false, dynamicColor = false) {
+                HomeScreen(onSettingsClick = {}, viewModel = buildViewModel())
+            }
+        }
+        composeTestRule.onNodeWithContentDescription("Switch to grid view").performClick()
+        composeTestRule.waitForIdle()
+
+        pressKey(Key.DirectionDown)
+
+        composeTestRule.onNodeWithContentDescription("Close").assertDoesNotExist()
     }
 }
