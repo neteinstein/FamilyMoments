@@ -32,6 +32,7 @@ private const val LATEST_RELEASE_URL = "https://github.com/neteinstein/FamilyMom
 
 @Composable
 actual fun InstallAppBanner() {
+    if (!isAndroidUserAgent()) return
     var dismissed by remember { mutableStateOf(isBannerDismissed()) }
     if (dismissed) return
 
@@ -68,6 +69,10 @@ actual fun InstallAppBanner() {
         }
     }
 }
+
+private fun isAndroidUserAgent(): Boolean = readUserAgent().contains("Android", ignoreCase = true)
+
+private fun readUserAgent(): String = js("navigator.userAgent")
 
 private fun isBannerDismissed(): Boolean = readLocalStorageItem(DISMISSED_KEY) == "true"
 
