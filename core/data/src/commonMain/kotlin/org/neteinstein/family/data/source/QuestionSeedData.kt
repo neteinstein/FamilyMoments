@@ -17,7 +17,7 @@ object QuestionSeedData {
      * an additive insert, which is the only way a removed question actually disappears from a
      * device that was seeded before it was deleted from this file.
      */
-    const val VERSION = 1
+    const val VERSION = 2
 
     private val englishQuestions =
         listOf(
@@ -767,7 +767,7 @@ object QuestionSeedData {
             ),
             Question(
                 id = 123,
-                text = "Qual é algo que fizeste recentemente que exigiu muita coragem?",
+                text = "O que fizeste recentemente que exigiu muita coragem?",
                 languageCode = "pt",
                 category = QuestionCategory.Values,
             ),

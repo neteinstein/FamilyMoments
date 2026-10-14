@@ -14,7 +14,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.neteinstein.family.domain.repository.LocaleProvider
+import org.neteinstein.family.domain.usecase.GetContentLanguageUseCase
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.MarkQuestionUsedUseCase
@@ -48,19 +48,19 @@ class HomeScreenCategoryDropdownTest {
 
     private fun buildViewModel(): HomeViewModel {
         val getQuestionsUseCase: GetQuestionsUseCase = mockk()
-        val localeProvider: LocaleProvider = mockk()
+        val getContentLanguageUseCase: GetContentLanguageUseCase = mockk()
         val getUsedQuestionIdsUseCase: GetUsedQuestionIdsUseCase = mockk()
         val markQuestionUsedUseCase: MarkQuestionUsedUseCase = mockk()
-        every { localeProvider.currentLanguageCode() } returns "en"
+        every { getContentLanguageUseCase() } returns "en"
         // No fake questions: with a current question on screen, its own CategoryPill would show
-        // the same "<emoji> <name>" text as a dropdown item of the same category, and
-        // onNodeWithText requires exactly one match across the whole semantics tree (the popup
-        // doesn't hide nodes behind it). An empty list keeps the card's own category text off
-        // screen entirely, so it can never collide with the one in the dropdown.
+        // the same name text as a dropdown item of the same category, and onNodeWithText requires
+        // exactly one match across the whole semantics tree (the popup doesn't hide nodes behind
+        // it). An empty list keeps the card's own category text off screen entirely, so it can
+        // never collide with the one in the dropdown.
         coEvery { getQuestionsUseCase(any()) } returns emptyList()
         coEvery { getUsedQuestionIdsUseCase() } returns emptySet()
         coEvery { markQuestionUsedUseCase(any()) } returns Unit
-        return HomeViewModel(getQuestionsUseCase, localeProvider, getUsedQuestionIdsUseCase, markQuestionUsedUseCase)
+        return HomeViewModel(getQuestionsUseCase, getContentLanguageUseCase, getUsedQuestionIdsUseCase, markQuestionUsedUseCase)
     }
 
     @Test
@@ -74,11 +74,11 @@ class HomeScreenCategoryDropdownTest {
         composeTestRule.onNodeWithContentDescription("Filter by category").performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("🎉 Ice Breakers").assertExists()
-        composeTestRule.onNodeWithText("📸 Memories").assertExists()
-        composeTestRule.onNodeWithText("❤️ Values").assertExists()
-        composeTestRule.onNodeWithText("🔮 Future Dreams").assertExists()
-        composeTestRule.onNodeWithText("🌻 Daily Life").assertExists()
+        composeTestRule.onNodeWithText("Ice Breakers").assertExists()
+        composeTestRule.onNodeWithText("Memories").assertExists()
+        composeTestRule.onNodeWithText("Values").assertExists()
+        composeTestRule.onNodeWithText("Future Dreams").assertExists()
+        composeTestRule.onNodeWithText("Daily Life").assertExists()
     }
 
     @Test
@@ -91,10 +91,10 @@ class HomeScreenCategoryDropdownTest {
 
         composeTestRule.onNodeWithContentDescription("Filter by category").performClick()
         composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("❤️ Values").performClick()
+        composeTestRule.onNodeWithText("Values").performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("❤️ Values").assertExists()
-        composeTestRule.onNodeWithText("🎉 Ice Breakers").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Values").assertExists()
+        composeTestRule.onNodeWithText("Ice Breakers").assertDoesNotExist()
     }
 }

@@ -1,5 +1,6 @@
 package org.neteinstein.family.feature.settings
 
+import org.neteinstein.family.domain.model.AppLanguage
 import org.neteinstein.family.domain.model.AppUpdate
 import org.neteinstein.family.domain.model.ThemeMode
 
@@ -12,6 +13,8 @@ data class SettingsUiState(
     /** Number of cards hidden via swipe-down on Home, out of [totalCardsCount]. */
     val hiddenCardsCount: Int = 0,
     val totalCardsCount: Int = 0,
+    /** The user's in-app language override, or `null` to follow the OS/browser language - see SettingsViewModel. */
+    val languageOverride: AppLanguage? = null,
 )
 
 /** Drives the "Reset Cards" button and its status text on the Settings screen. */

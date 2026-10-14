@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ktlint)
+    id("familymoments.ktlint")
 }
 
 // The Web (wasmJs) entry point - mirrors androidApp/iosApp's role for Android/iOS: a thin
@@ -32,12 +32,5 @@ kotlin {
             // catalog accessor, which is deprecated in this Compose Multiplatform version.
             implementation("org.jetbrains.compose.ui:ui:${libs.versions.composeMultiplatform.get()}")
         }
-    }
-}
-
-ktlint {
-    reporters {
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
     }
 }

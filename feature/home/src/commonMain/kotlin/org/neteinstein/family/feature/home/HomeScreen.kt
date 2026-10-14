@@ -17,6 +17,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -41,12 +43,23 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ViewCarousel
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -72,10 +85,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -144,9 +166,23 @@ fun HomeScreen(
     }
     var isGridView by remember { mutableStateOf(false) }
     var showHideConfirmDialog by remember { mutableStateOf(false) }
+    val cardFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
         viewModel.onScreenEntered()
+    }
+
+    // Lets a physical keyboard (mainly relevant on the web build, where a mouse/trackpad is often
+    // the only other input) page through cards the same way a swipe does: Left/Right mirrors the
+    // "swipe for a new question" hint on the card stack, and Up/Down steps to the previous/next
+    // card while one is shown full screen. The vertical (focus/hide) gestures on the stack itself
+    // have no key equivalent. Focus is requested on entry (landing on Home) and again whenever the
+    // full-screen view opens or closes, since the node that had it (e.g. the grid card that was
+    // tapped) may be gone by then; it isn't reclaimed after e.g. the category dropdown takes it,
+    // matching how most web apps only capture keyboard shortcuts for the page they're currently
+    // focused on.
+    LaunchedEffect(fullScreenQuestion != null) {
+        cardFocusRequester.requestFocus()
     }
 
     PlatformBackHandler(enabled = fullScreenQuestion != null) { fullScreenQuestion = null }
@@ -155,7 +191,48 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .focusRequester(cardFocusRequester)
+                    .focusable()
+                    .onKeyEvent { event ->
+                        if (event.type != KeyEventType.KeyDown || uiState.isLoading) {
+                            return@onKeyEvent false
+                        }
+                        val expandedQuestion = fullScreenQuestion
+                        when {
+                            expandedQuestion != null ->
+                                when (event.key) {
+                                    Key.DirectionUp -> {
+                                        uiState.questions.adjacentTo(expandedQuestion, step = -1)?.let { fullScreenQuestion = it }
+                                        true
+                                    }
+                                    Key.DirectionDown -> {
+                                        uiState.questions.adjacentTo(expandedQuestion, step = 1)?.let { fullScreenQuestion = it }
+                                        true
+                                    }
+                                    else -> false
+                                }
+                            isGridView -> false
+                            else ->
+                                when (event.key) {
+                                    Key.DirectionLeft -> {
+                                        swipeDirection = 1
+                                        viewModel.previousQuestion()
+                                        true
+                                    }
+                                    Key.DirectionRight -> {
+                                        swipeDirection = -1
+                                        viewModel.nextQuestion()
+                                        true
+                                    }
+                                    else -> false
+                                }
+                        }
+                    },
+        ) {
             // Decorative background gradient
             Box(
                 modifier =
@@ -193,17 +270,15 @@ fun HomeScreen(
 
                 // Subtitle
                 if (!isGridView) {
-                    Text(
+                    SwipeHintRow(
                         text = stringResource(Res.string.home_swipe_hint),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
+                        trailingIcons = listOf(Icons.AutoMirrored.Filled.ArrowBack, Icons.AutoMirrored.Filled.ArrowForward),
                     )
-                    Text(
+                    SwipeHintRow(
                         text = stringResource(Res.string.home_vertical_swipe_hint),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
+                        trailingIcons = listOf(Icons.Default.KeyboardArrowUp, Icons.Default.KeyboardArrowDown),
                     )
                 }
 
@@ -339,6 +414,21 @@ fun HomeScreen(
     }
 }
 
+/**
+ * The question [step] positions away from [current] in this list, wrapping around at either end.
+ * Falls back to the first (forward) or last (backward) question when [current] isn't in the list
+ * any more, e.g. it was hidden while it was on screen.
+ */
+private fun List<Question>.adjacentTo(
+    current: Question,
+    step: Int,
+): Question? {
+    if (isEmpty()) return null
+    val index = indexOfFirst { it.id == current.id }
+    if (index == -1) return if (step > 0) first() else last()
+    return this[(index + step).mod(size)]
+}
+
 @Composable
 private fun FullScreenQuestion(
     question: Question?,
@@ -423,9 +513,11 @@ private fun FullScreenQuestion(
                     CategoryPill(category = category)
                     Spacer(modifier = Modifier.height(24.dp))
                 }
-                Text(
-                    text = "💬",
-                    style = MaterialTheme.typography.displayLarge,
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Chat,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(56.dp),
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 Text(
@@ -503,6 +595,40 @@ private fun HomeTopBar(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+    }
+}
+
+/**
+ * A hint line followed by a couple of small trailing direction icons (e.g. left/right or up/down
+ * arrows) - replaces literal Unicode arrow characters that used to be embedded directly in the
+ * translated string, which rendered as "tofu" boxes on the web build (see [QuestionCategory]'s doc
+ * comment for why - the same Wasm/Skia emoji-font-fallback gap applies to these).
+ */
+@Composable
+private fun SwipeHintRow(
+    text: String,
+    style: TextStyle,
+    trailingIcons: List<ImageVector>,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = text,
+            style = style,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        trailingIcons.forEach { icon ->
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(14.dp),
+            )
         }
     }
 }
@@ -638,9 +764,11 @@ private fun QuestionCard(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center,
                         ) {
-                            Text(
-                                text = "🗂️",
-                                style = MaterialTheme.typography.displaySmall,
+                            Icon(
+                                imageVector = Icons.Default.Inbox,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(48.dp),
                             )
                             Spacer(modifier = Modifier.height(24.dp))
                             Text(
@@ -742,9 +870,11 @@ private fun QuestionGrid(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(
-                    text = "🗂️",
-                    style = MaterialTheme.typography.displaySmall,
+                Icon(
+                    imageVector = Icons.Default.Inbox,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(48.dp),
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
@@ -811,12 +941,13 @@ private fun GridQuestionCard(
                     ).padding(10.dp),
             contentAlignment = Alignment.Center,
         ) {
-            // The full CategoryPill label (emoji + name) is too wide for a 3-column card and
-            // would get clipped by the card's rounded corners, so just show the emoji here.
-            Text(
-                text = question.category.emoji,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.align(Alignment.TopEnd),
+            // The full CategoryPill label (icon + name) is too wide for a 3-column card and
+            // would get clipped by the card's rounded corners, so just show the icon here.
+            Icon(
+                imageVector = question.category.icon(),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.TopEnd).size(16.dp),
             )
             Text(
                 text = question.text,
@@ -841,21 +972,40 @@ private fun categoryLabelRes(category: QuestionCategory): StringResource =
         else -> Res.string.category_ice_breakers
     }
 
+// A plain function (not @Composable) mapping each category to its icon - see QuestionCategory's
+// doc comment for why this lives here rather than as a field on the domain model.
+private fun QuestionCategory.icon(): ImageVector =
+    when (this) {
+        is QuestionCategory.IceBreakers -> Icons.Default.Celebration
+        is QuestionCategory.Memories -> Icons.Default.PhotoCamera
+        is QuestionCategory.Values -> Icons.Default.Favorite
+        is QuestionCategory.FutureDreams -> Icons.Default.AutoAwesome
+        is QuestionCategory.DailyLife -> Icons.Default.WbSunny
+    }
+
 @Composable
-private fun categoryDisplayLabel(category: QuestionCategory): String = category.emoji + " " + stringResource(categoryLabelRes(category))
+private fun categoryDisplayLabel(category: QuestionCategory): String = stringResource(categoryLabelRes(category))
 
 @Composable
 private fun CategoryPill(
     category: QuestionCategory,
     modifier: Modifier = Modifier,
 ) {
-    Box(
+    Row(
         modifier =
             modifier
                 .clip(RoundedCornerShape(50))
                 .background(MaterialTheme.colorScheme.secondaryContainer)
                 .padding(horizontal = 10.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(
+            imageVector = category.icon(),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(14.dp),
+        )
         Text(
             text = categoryDisplayLabel(category),
             style = MaterialTheme.typography.labelSmall,
@@ -887,6 +1037,7 @@ private fun CategoryDropdown(
     val dailyLifeLabel = QuestionCategory.DailyLife to categoryDisplayLabel(QuestionCategory.DailyLife)
     val categoryLabels = listOf(iceBreakersLabel, memoriesLabel, valuesLabel, futureDreamsLabel, dailyLifeLabel)
     val selectedLabel = categoryLabels.firstOrNull { (category, _) -> category == selectedCategory }?.second ?: allLabel
+    val selectedIcon = selectedCategory?.icon()
 
     Box(modifier = modifier) {
         Row(
@@ -900,6 +1051,14 @@ private fun CategoryDropdown(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (selectedIcon != null) {
+                Icon(
+                    imageVector = selectedIcon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
             Text(
                 text = selectedLabel,
                 style = MaterialTheme.typography.labelMedium,
@@ -928,6 +1087,9 @@ private fun CategoryDropdown(
             for ((category, label) in categoryLabels) {
                 DropdownMenuItem(
                     text = { Text(label) },
+                    leadingIcon = {
+                        Icon(imageVector = category.icon(), contentDescription = null, modifier = Modifier.size(20.dp))
+                    },
                     onClick = {
                         expanded = false
                         onCategorySelected(category)

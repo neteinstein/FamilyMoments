@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ktlint)
+    id("familymoments.ktlint")
     alias(libs.plugins.play.publisher)
 }
 
@@ -144,10 +144,6 @@ play {
 ktlint {
     android.set(true)
     ignoreFailures.set(false)
-    reporters {
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
-    }
 }
 
 dependencies {

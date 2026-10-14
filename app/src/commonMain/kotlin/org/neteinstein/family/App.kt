@@ -1,13 +1,18 @@
 package org.neteinstein.family
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
 import org.neteinstein.family.domain.model.ThemeMode
 import org.neteinstein.family.navigation.AppNavigation
+import org.neteinstein.family.ui.components.InstallAppBanner
+import org.neteinstein.family.ui.locale.ProvideAppLanguage
 import org.neteinstein.family.ui.theme.FamilyMomentsTheme
 
 /**
@@ -20,6 +25,7 @@ import org.neteinstein.family.ui.theme.FamilyMomentsTheme
 fun App() {
     val viewModel: MainActivityViewModel = koinViewModel()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val languageOverride by viewModel.languageOverride.collectAsStateWithLifecycle()
     val darkTheme =
         when (themeMode) {
             ThemeMode.LIGHT -> false
@@ -27,8 +33,18 @@ fun App() {
             ThemeMode.SYSTEM -> isSystemInDarkTheme()
         }
 
-    FamilyMomentsTheme(darkTheme = darkTheme, dynamicColor = false) {
-        val navController = rememberNavController()
-        AppNavigation(navController = navController)
+    // Wraps everything so the in-app language choice (Settings' picker, iOS/Web only - Android
+    // goes through the OS's own per-app language settings) applies to the app's own strings and
+    // not just the question cards.
+    ProvideAppLanguage(languageCode = languageOverride?.code) {
+        FamilyMomentsTheme(darkTheme = darkTheme, dynamicColor = false) {
+            Column {
+                InstallAppBanner()
+                Box(modifier = Modifier.weight(1f)) {
+                    val navController = rememberNavController()
+                    AppNavigation(navController = navController)
+                }
+            }
+        }
     }
 }

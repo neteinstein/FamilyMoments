@@ -18,7 +18,7 @@ import org.junit.Before
 import org.junit.Test
 import org.neteinstein.family.domain.model.Question
 import org.neteinstein.family.domain.model.QuestionCategory
-import org.neteinstein.family.domain.repository.LocaleProvider
+import org.neteinstein.family.domain.usecase.GetContentLanguageUseCase
 import org.neteinstein.family.domain.usecase.GetQuestionsUseCase
 import org.neteinstein.family.domain.usecase.GetUsedQuestionIdsUseCase
 import org.neteinstein.family.domain.usecase.MarkQuestionUsedUseCase
@@ -27,7 +27,7 @@ import org.neteinstein.family.domain.usecase.MarkQuestionUsedUseCase
 class HomeViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val getQuestionsUseCase: GetQuestionsUseCase = mockk()
-    private val localeProvider: LocaleProvider = mockk()
+    private val getContentLanguageUseCase: GetContentLanguageUseCase = mockk()
     private val getUsedQuestionIdsUseCase: GetUsedQuestionIdsUseCase = mockk()
     private val markQuestionUsedUseCase: MarkQuestionUsedUseCase = mockk()
 
@@ -43,14 +43,14 @@ class HomeViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { localeProvider.currentLanguageCode() } returns "en"
+        every { getContentLanguageUseCase() } returns "en"
         coEvery { getQuestionsUseCase(any()) } returns fakeQuestions
         coEvery { getUsedQuestionIdsUseCase() } returns emptySet()
         coEvery { markQuestionUsedUseCase(any()) } returns Unit
         viewModel =
             HomeViewModel(
                 getQuestionsUseCase,
-                localeProvider,
+                getContentLanguageUseCase,
                 getUsedQuestionIdsUseCase,
                 markQuestionUsedUseCase,
             )
@@ -138,16 +138,16 @@ class HomeViewModelTest {
     fun `init loads questions in the app's currently applied language, not a hardcoded default`() =
         runTest {
             // Regression test: the ViewModel used to always default to "en" on startup regardless of
-            // the language configured for the app (see LocaleProvider), silently ignoring whatever the
-            // user picked via Settings > App Language.
-            every { localeProvider.currentLanguageCode() } returns "pt"
+            // the language configured for the app (see GetContentLanguageUseCase), silently ignoring
+            // whatever the user picked via Settings.
+            every { getContentLanguageUseCase() } returns "pt"
             val ptQuestions = listOf(Question(id = 101, text = "Pergunta 1?", languageCode = "pt"))
             coEvery { getQuestionsUseCase("pt") } returns ptQuestions
 
             val ptViewModel =
                 HomeViewModel(
                     getQuestionsUseCase,
-                    localeProvider,
+                    getContentLanguageUseCase,
                     getUsedQuestionIdsUseCase,
                     markQuestionUsedUseCase,
                 )
@@ -168,8 +168,9 @@ class HomeViewModelTest {
             val esQuestions = listOf(Question(id = 201, text = "Pregunta 1?", languageCode = "es"))
             coEvery { getQuestionsUseCase("es") } returns esQuestions
 
-            // Simulates the user changing the per-app language in system Settings and returning to Home.
-            every { localeProvider.currentLanguageCode() } returns "es"
+            // Simulates the user changing the app's language (system Settings on Android, the in-app
+            // picker on iOS/Web) and returning to Home.
+            every { getContentLanguageUseCase() } returns "es"
             viewModel.onScreenEntered()
             testDispatcher.scheduler.advanceUntilIdle()
 

@@ -1,30 +1,27 @@
 package org.neteinstein.family.data.local
 
-import kotlin.js.ExperimentalWasmJsInterop
-
-@OptIn(ExperimentalWasmJsInterop::class)
-@JsFun("(key) => window.localStorage.getItem(key)")
-private external fun jsLocalStorageGetItem(key: String): String?
-
-@OptIn(ExperimentalWasmJsInterop::class)
-@JsFun("(key, value) => window.localStorage.setItem(key, value)")
-private external fun jsLocalStorageSetItem(
-    key: String,
-    value: String,
-)
-
-/** `window.localStorage`-backed - persists across page reloads, scoped to the page's origin. */
+/**
+ * Backed by the browser's `localStorage` so preferences (theme, language override) survive a page
+ * reload - a single string key per preference is a small enough surface to wire up directly, unlike
+ * [org.neteinstein.family.data.local.QuestionLocalDataSource]'s wasmJs actual, which needed a real
+ * IndexedDB-backed implementation (see that actual) for its larger, queryable row shape.
+ */
 private class LocalStorageKeyValueStore : KeyValueStore {
-    @OptIn(ExperimentalWasmJsInterop::class)
-    override fun getString(key: String): String? = jsLocalStorageGetItem(key)
+    override fun getString(key: String): String? = readLocalStorageItem(key)
 
-    @OptIn(ExperimentalWasmJsInterop::class)
     override fun putString(
         key: String,
         value: String,
     ) {
-        jsLocalStorageSetItem(key, value)
+        writeLocalStorageItem(key, value)
     }
 }
 
 actual fun platformKeyValueStore(): KeyValueStore = LocalStorageKeyValueStore()
+
+private fun readLocalStorageItem(key: String): String? = js("localStorage.getItem(key)")
+
+private fun writeLocalStorageItem(
+    key: String,
+    value: String,
+): Unit = js("localStorage.setItem(key, value)")

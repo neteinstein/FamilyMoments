@@ -16,12 +16,42 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.ResourceEnvironment
+import org.jetbrains.compose.resources.getDrawableResourceBytes
 import org.jetbrains.compose.resources.painterResource
 import org.neteinstein.family.ui.resources.Res
 import org.neteinstein.family.ui.resources.ic_campfire_ember_large
 import org.neteinstein.family.ui.resources.ic_campfire_ember_small
 import org.neteinstein.family.ui.resources.ic_campfire_flame
 import org.neteinstein.family.ui.resources.ic_campfire_scene_base
+
+/**
+ * Prefetches the campfire artwork's raw bytes before [FamilyMomentsLogo] is first drawn.
+ * `painterResource()` loads synchronously on Android/iOS, but on the web target it loads
+ * resources asynchronously - the first composition gets an empty painter, replaced once the
+ * fetch/decode resolves (see the Compose Multiplatform resources library). [SplashScreen]'s
+ * entrance animation and auto-navigate timer aren't otherwise aware of that load, so on a slow or
+ * cold-cache web load the screen could finish and navigate to Home before the logo was ever
+ * visibly drawn - reported as "the splash icon is missing" on web. Awaiting this first warms the
+ * resource loader (including the browser's own HTTP cache) so the actual `painterResource()` calls
+ * inside [FamilyMomentsLogo] resolve immediately once this returns; a fast no-op on Android/iOS,
+ * where reads are already synchronous.
+ */
+suspend fun preloadFamilyMomentsLogo(environment: ResourceEnvironment) {
+    val drawables: List<DrawableResource> =
+        listOf(
+            Res.drawable.ic_campfire_scene_base,
+            Res.drawable.ic_campfire_flame,
+            Res.drawable.ic_campfire_ember_large,
+            Res.drawable.ic_campfire_ember_small,
+        )
+    coroutineScope {
+        drawables.map { async { getDrawableResourceBytes(environment, it) } }.forEach { it.await() }
+    }
+}
 
 /**
  * Renders the same campfire-scene artwork used by the launcher icon, so the splash screen matches

@@ -1,13 +1,7 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.kotlin.multiplatform.library)
-    alias(libs.plugins.compose.multiplatform)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.kover)
+    id("familymoments.kmp.compose.library")
 }
 
 // The shared Kotlin Multiplatform aggregator module - commonMain holds the composed Koin
@@ -16,17 +10,17 @@ plugins {
 // neteinstein/loopgain's `composeApp` module, which this mirrors (kept named `app` since that's
 // this repo's existing module name).
 kotlin {
-    jvmToolchain(17)
-
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     android {
         namespace = "org.neteinstein.family.shared"
-        compileSdk = 37
-        minSdk = 32
 
         withHostTestBuilder {}.configure {}
     }
 
+    // Re-invokes the iosArm64()/iosSimulatorArm64() targets familymoments.kmp.library already
+    // declared, purely to reach their `binaries.framework { }` - reconfiguring an already-declared
+    // KMP target this way (rather than re-declaring it) is the standard way a convention plugin's
+    // consumer adds target-specific config on top of the shared shape.
     listOf(
         iosArm64(),
         iosSimulatorArm64(),
@@ -35,11 +29,6 @@ kotlin {
             baseName = "FamilyMomentsShared"
             isStatic = true
         }
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
     }
 
     sourceSets {
@@ -78,12 +67,5 @@ kotlin {
                 implementation(libs.coroutines.test)
             }
         }
-    }
-}
-
-ktlint {
-    reporters {
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
     }
 }
