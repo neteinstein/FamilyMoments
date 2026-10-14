@@ -9,9 +9,11 @@ plugins {
 //
 // Room stays Android-only for now, exactly as it worked before this migration (entities/DAOs live
 // in androidMain, unchanged): its KMP support needs a per-target SQLite driver this module hasn't
-// set up for iOS yet. iOS and wasmJs get a simple in-memory QuestionLocalDataSource actual
-// instead - see that interface's doc comment. The GitHub self-update feature is Android-only
-// outright (APK sideloading has no iOS/Web equivalent) - see platformUpdateModule's actuals.
+// set up for iOS yet, so iOS still gets a simple in-memory QuestionLocalDataSource actual - see
+// that interface's doc comment. wasmJs's actual is IndexedDB-backed (KeyValueStore's wasmJs actual
+// is window.localStorage-backed) via hand-written Kotlin/Wasm-JS interop, since Room has no wasmJs
+// support at all. The GitHub self-update feature is Android-only outright (APK sideloading has no
+// iOS/Web equivalent) - see platformUpdateModule's actuals.
 kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     android {

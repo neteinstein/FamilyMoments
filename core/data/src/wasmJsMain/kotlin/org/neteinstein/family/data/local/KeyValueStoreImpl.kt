@@ -2,10 +2,9 @@ package org.neteinstein.family.data.local
 
 /**
  * Backed by the browser's `localStorage` so preferences (theme, language override) survive a page
- * reload - unlike [org.neteinstein.family.data.local.QuestionLocalDataSource]'s wasmJs actual,
- * which stays in-memory-only for now (a full browser-storage-backed question/card store is a much
- * bigger lift, tracked separately), a single string key per preference is a small enough surface
- * to wire up directly.
+ * reload - a single string key per preference is a small enough surface to wire up directly, unlike
+ * [org.neteinstein.family.data.local.QuestionLocalDataSource]'s wasmJs actual, which needed a real
+ * IndexedDB-backed implementation (see that actual) for its larger, queryable row shape.
  */
 private class LocalStorageKeyValueStore : KeyValueStore {
     override fun getString(key: String): String? = readLocalStorageItem(key)

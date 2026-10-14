@@ -122,9 +122,12 @@ Obfuscated stack traces need the matching mapping file, and R8 emits a different
 > `MainActivityViewModelTest.kt`'s comment). CI (Phase 8) builds and verifies all three platforms
 > on every PR - `Compile iOS` and `Compile Web` jobs alongside the Android ones - and every KMP
 > module has real coverage reporting via `kotlinx-kover`, not just `androidApp`'s own stopgap. One
-> functional gap remains outside this migration's original scope, not yet addressed: iOS and
-> wasmJs both persist question/card data in memory only (no Room/browser-storage-backed
-> implementation - see `QuestionLocalDataSourceImpl`'s doc comment on each platform).
+> functional gap remains outside this migration's original scope, not yet addressed: iOS still
+> persists question/card data in memory only (Room's KMP support needs a per-target SQLite driver
+> not yet set up for iOS - see `QuestionLocalDataSourceImpl`'s doc comment). wasmJs's own
+> `QuestionLocalDataSource` gap has since been closed (IndexedDB-backed, via hand-written
+> Kotlin/Wasm-JS interop, since Room has no wasmJs support at all) - its `KeyValueStore` was already
+> `window.localStorage`-backed, as iOS's is `NSUserDefaults`-backed.
 >
 > **`build-logic` convention plugins:** the repeated `kotlin { jvmToolchain(17); android { compileSdk
 > = 37; minSdk = 32 }; iosArm64(); iosSimulatorArm64(); wasmJs { browser() } }` shape every
