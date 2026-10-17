@@ -1,6 +1,6 @@
 [versions]
-agp = "9.4.0"
-kotlin = "2.4.10"
+agp = "9.4.1"
+kotlin = "2.4.20"
 coroutines = "1.10.2"
 lifecycle = "2.10.0"
 navigationCompose = "2.10.1"
@@ -30,9 +30,9 @@ ksp = "2.3.12"
 robolectric = "4.17"
 pagerIndicator = "0.0.9"
 playPublisher = "4.1.1"
-# Compose Multiplatform - pinned to the exact Kotlin 2.4.10 pairing already validated in
-# neteinstein/loopgain (the reference KMP+CMP app this migration follows).
-composeMultiplatform = "1.11.1"
+# Compose Multiplatform - kept on a release paired with the Kotlin version above (originally validated in
+# neteinstein/loopgain, the reference KMP+CMP app this migration follows).
+composeMultiplatform = "1.12.1"
 
 [libraries]
 # Compose BOM
@@ -73,7 +73,7 @@ koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = 
 koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koinCompose" }
 
 # Core
-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.19.0" }
+core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.19.1" }
 
 # Splash Screen
 splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
