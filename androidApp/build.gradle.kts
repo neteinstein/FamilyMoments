@@ -5,6 +5,23 @@ plugins {
     alias(libs.plugins.play.publisher)
 }
 
+// The Firebase/google-services plugin is applied conditionally rather than declared in the
+// `plugins { }` block above (where it would be unconditional): it hard-fails the build with
+// "File google-services.json is missing" when that file is absent, and the file is git-ignored on
+// purpose (see .gitignore and AGENTS.md's Firebase Analytics section). A clean checkout, a fork,
+// and a fork-originated PR - which cannot read Action secrets at all - must all still compile.
+// Without the plugin no `google_app_id` string resource is generated, FirebaseApp never
+// initializes, and core:data's FirebaseAnalyticsTracker no-ops at runtime (see its kdoc), so the
+// app behaves exactly as it did before analytics existed. The plugin itself reaches the build
+// classpath via the root build.gradle.kts's `apply false` declaration.
+if (layout.projectDirectory
+        .file("google-services.json")
+        .asFile
+        .exists()
+) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "org.neteinstein.family"
     compileSdk = 37
@@ -32,15 +49,20 @@ android {
     // is submitted to the Play Store, which reviews/distributes updates itself, so
     // UPDATES_ENABLED gates that flow off entirely (feature/settings hides the "Updates" section
     // and never invokes the update use cases - see di/AppModule.kt).
+    // DISTRIBUTION is reported to Firebase Analytics as a user property (see core:domain's
+    // AnalyticsUserProperties and app's appModule), so a metric can be split by install channel -
+    // update adoption, for instance, only means anything for the "github" flavor.
     flavorDimensions += "distribution"
     productFlavors {
         create("github") {
             dimension = "distribution"
             buildConfigField("boolean", "UPDATES_ENABLED", "true")
+            buildConfigField("String", "DISTRIBUTION", "\"github\"")
         }
         create("playstore") {
             dimension = "distribution"
             buildConfigField("boolean", "UPDATES_ENABLED", "false")
+            buildConfigField("String", "DISTRIBUTION", "\"playstore\"")
         }
     }
 

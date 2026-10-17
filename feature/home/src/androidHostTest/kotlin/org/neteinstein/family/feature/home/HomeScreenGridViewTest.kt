@@ -59,7 +59,13 @@ class HomeScreenGridViewTest {
         coEvery { getQuestionsUseCase(any()) } returns fakeQuestions
         coEvery { getUsedQuestionIdsUseCase() } returns emptySet()
         coEvery { markQuestionUsedUseCase(any()) } returns Unit
-        return HomeViewModel(getQuestionsUseCase, getContentLanguageUseCase, getUsedQuestionIdsUseCase, markQuestionUsedUseCase)
+        return HomeViewModel(
+            getQuestionsUseCase,
+            getContentLanguageUseCase,
+            getUsedQuestionIdsUseCase,
+            markQuestionUsedUseCase,
+            mockk(relaxed = true),
+        )
     }
 
     @Test

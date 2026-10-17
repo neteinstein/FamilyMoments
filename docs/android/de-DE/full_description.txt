@@ -1,5 +1,6 @@
 Family Moments zeigt dir jeweils eine Frage — wische durch ein Kartendeck, das echte Gespräche
-mit den Menschen anregen soll, die du liebst. Kein Konto, kein Server, nichts verlässt dein Gerät.
+mit den Menschen anregen soll, die du liebst. Kein Konto, kein Server, und deine Antworten
+verlassen nie dein Gerät.
 
 SO FUNKTIONIERT ES
 Wische nach rechts für die nächste Frage, nach links für die vorherige, nach oben, um eine Karte
@@ -22,8 +23,11 @@ FÜR ECHTE GESPRÄCHE GEMACHT, KEINE DEMO
   Oberfläche der App ist auf Englisch und Portugiesisch verfügbar und lässt sich jederzeit über
   die App-Sprachauswahl von Android umschalten.
 • Heller, dunkler oder Systemmodus.
-• Kein Konto, keine Anmeldung, keine Werbung, und keine Daten verlassen jemals dein Gerät —
-  alles wird lokal gespeichert.
+• Kein Konto, keine Anmeldung, keine Werbung. Deine Karten, dein Thema und deine Sprache werden
+  lokal gespeichert und nie irgendwohin gesendet.
+• Anonyme Nutzungsstatistiken (welche Bildschirme und Aktionen genutzt werden) helfen dabei, das
+  Kartendeck zu verbessern. Keine Nutzer-ID, keine Werbe-ID, kein Fragetext — und ein einziger
+  Schalter in den Einstellungen deaktiviert sie.
 
 WARUM ES DIESE APP GIBT
 Die besten Familiengespräche beginnen selten von selbst — jemand muss die richtige Frage stellen.

@@ -13,6 +13,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,11 +31,23 @@ import org.neteinstein.family.ui.resources.install_app_banner_message
 private const val DISMISSED_KEY = "install_app_banner_dismissed"
 private const val LATEST_RELEASE_URL = "https://github.com/neteinstein/FamilyMoments/releases/latest"
 
+// Values of AnalyticsParams.ACTION, spelled out here rather than imported: core:ui depends on
+// nothing but Compose (see AGENTS.md's module dependency rules), so it can't reach core:domain's
+// constants. core:domain's AnalyticsBannerActions is the canonical spelling and its
+// AnalyticsEventsTest pins these exact literals, so the two can't drift apart unnoticed.
+private const val ACTION_SHOWN = "shown"
+private const val ACTION_CLICKED = "clicked"
+private const val ACTION_DISMISSED = "dismissed"
+
 @Composable
-actual fun InstallAppBanner() {
+actual fun InstallAppBanner(onBannerAction: (String) -> Unit) {
     if (!isAndroidUserAgent()) return
     var dismissed by remember { mutableStateOf(isBannerDismissed()) }
     if (dismissed) return
+
+    // Reported once per composition of a banner that actually renders, so the click-through and
+    // dismissal rates below have a denominator.
+    LaunchedEffect(Unit) { onBannerAction(ACTION_SHOWN) }
 
     val uriHandler = LocalUriHandler.current
     Surface(
@@ -52,11 +65,17 @@ actual fun InstallAppBanner() {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = { uriHandler.openUri(LATEST_RELEASE_URL) }) {
+            TextButton(
+                onClick = {
+                    onBannerAction(ACTION_CLICKED)
+                    uriHandler.openUri(LATEST_RELEASE_URL)
+                },
+            ) {
                 Text(stringResource(Res.string.install_app_banner_action))
             }
             IconButton(
                 onClick = {
+                    onBannerAction(ACTION_DISMISSED)
                     dismissed = true
                     persistBannerDismissed()
                 },

@@ -63,6 +63,23 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Write google-services.json (optional)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          # Optional on purpose. A pull request from a fork cannot read repository secrets at all,
+          # and this repo is source-available, so PR checks must pass without Firebase config:
+          # androidApp applies the google-services plugin only when this file exists, and
+          # FirebaseAnalyticsTracker no-ops when FirebaseApp never initialized. Skipping here means
+          # the PR build compiles the analytics code without exercising the real SDK wiring - the
+          # release workflow, which does require the secret, is what proves that end to end.
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::notice::GOOGLE_SERVICES_JSON not set - building without Firebase (analytics disabled)."
+            exit 0
+          fi
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > androidApp/google-services.json
+          echo "Wrote androidApp/google-services.json"
+
       - name: Compile debug
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
@@ -96,6 +113,23 @@ jobs:
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
+
+      - name: Write google-services.json (optional)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          # Optional on purpose. A pull request from a fork cannot read repository secrets at all,
+          # and this repo is source-available, so PR checks must pass without Firebase config:
+          # androidApp applies the google-services plugin only when this file exists, and
+          # FirebaseAnalyticsTracker no-ops when FirebaseApp never initialized. Skipping here means
+          # the PR build compiles the analytics code without exercising the real SDK wiring - the
+          # release workflow, which does require the secret, is what proves that end to end.
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::notice::GOOGLE_SERVICES_JSON not set - building without Firebase (analytics disabled)."
+            exit 0
+          fi
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > androidApp/google-services.json
+          echo "Wrote androidApp/google-services.json"
 
       - name: Build minified release APKs
         run: ./gradlew assembleRelease --no-daemon --stacktrace
@@ -148,6 +182,23 @@ jobs:
       # covers the KMP android-library modules' (core:domain, core:data, core:ui, feature:splash,
       # feature:settings, feature:home, app) JVM host tests. A module without a given task is simply
       # skipped, Gradle only errors if none of these tasks exist anywhere in the build.
+      - name: Write google-services.json (optional)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          # Optional on purpose. A pull request from a fork cannot read repository secrets at all,
+          # and this repo is source-available, so PR checks must pass without Firebase config:
+          # androidApp applies the google-services plugin only when this file exists, and
+          # FirebaseAnalyticsTracker no-ops when FirebaseApp never initialized. Skipping here means
+          # the PR build compiles the analytics code without exercising the real SDK wiring - the
+          # release workflow, which does require the secret, is what proves that end to end.
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::notice::GOOGLE_SERVICES_JSON not set - building without Firebase (analytics disabled)."
+            exit 0
+          fi
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > androidApp/google-services.json
+          echo "Wrote androidApp/google-services.json"
+
       - name: Run unit tests
         run: ./gradlew testGithubDebugUnitTest testPlaystoreDebugUnitTest testAndroidHostTest --no-daemon --stacktrace
 
@@ -191,6 +242,11 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build wasmJs production distribution
+        # Read straight from the environment by webApp/build.gradle.kts - no file to write. Unset
+        # on fork PRs, which renders an init script that leaves analytics off; the build still
+        # succeeds, which is the point of that fallback.
+        env:
+          FIREBASE_WEB_CONFIG: ${{ secrets.FIREBASE_WEB_CONFIG }}
         run: ./gradlew :webApp:wasmJsBrowserDistribution --no-daemon --stacktrace
 
   # ─── iOS Compile ────────────────────────────────────────────────────────────
@@ -259,6 +315,23 @@ jobs:
       # testAndroidHostTest runs explicitly (not left to koverXmlReport's own task dependencies)
       # to sidestep a known issue where AGP 9.x can leave Kover's report tasks without a real
       # dependency on the test tasks that generate their input (Kotlin/kotlinx-kover#785).
+      - name: Write google-services.json (optional)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          # Optional on purpose. A pull request from a fork cannot read repository secrets at all,
+          # and this repo is source-available, so PR checks must pass without Firebase config:
+          # androidApp applies the google-services plugin only when this file exists, and
+          # FirebaseAnalyticsTracker no-ops when FirebaseApp never initialized. Skipping here means
+          # the PR build compiles the analytics code without exercising the real SDK wiring - the
+          # release workflow, which does require the secret, is what proves that end to end.
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::notice::GOOGLE_SERVICES_JSON not set - building without Firebase (analytics disabled)."
+            exit 0
+          fi
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > androidApp/google-services.json
+          echo "Wrote androidApp/google-services.json"
+
       - name: Run tests with coverage
         run: ./gradlew createGithubDebugUnitTestCoverageReport testAndroidHostTest koverXmlReport --no-daemon --stacktrace
 

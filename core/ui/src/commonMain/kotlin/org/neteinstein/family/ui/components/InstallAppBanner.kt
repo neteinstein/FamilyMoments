@@ -10,6 +10,11 @@ import androidx.compose.runtime.Composable
  * distribution channel used by the in-app updater). A no-op on Android/iOS, which are already the
  * native app. The dismissal choice is remembered in the browser's `localStorage` so it doesn't
  * reappear on the next visit.
+ *
+ * [onBannerAction] reports what the user did with the banner - `shown`, `clicked` or `dismissed`,
+ * the values of `AnalyticsParams.ACTION`. It is a callback rather than an injected tracker because
+ * `core:ui` deliberately depends on nothing but Compose (see AGENTS.md's module dependency rules);
+ * `app`'s `App()` supplies one that forwards to the real `AnalyticsTracker`.
  */
 @Composable
-expect fun InstallAppBanner()
+expect fun InstallAppBanner(onBannerAction: (String) -> Unit)

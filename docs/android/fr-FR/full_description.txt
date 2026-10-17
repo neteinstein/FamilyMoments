@@ -1,6 +1,6 @@
 Family Moments vous propose une question à la fois — faites défiler un jeu de cartes pensé pour
-susciter de vraies conversations avec les personnes que vous aimez. Sans compte, sans serveur,
-rien ne quitte votre appareil.
+susciter de vraies conversations avec les personnes que vous aimez. Sans compte, sans serveur, et
+vos réponses ne quittent jamais votre appareil.
 
 COMMENT ÇA MARCHE
 Glissez vers la droite pour la question suivante, vers la gauche pour la précédente, vers le haut
@@ -23,8 +23,11 @@ CONÇU POUR DE VRAIES CONVERSATIONS, PAS UNE SIMPLE DÉMO
   l'interface de l'application est disponible en anglais et en portugais, modifiable à tout moment
   via le sélecteur de langue par application d'Android.
 • Thème clair, sombre ou système.
-• Sans compte, sans connexion, sans publicité, et aucune donnée ne quitte jamais votre appareil —
-  tout est stocké localement.
+• Sans compte, sans connexion et sans publicité. Vos cartes, votre thème et votre langue sont
+  stockés localement et ne sont jamais envoyés nulle part.
+• Des statistiques d'usage anonymes (quels écrans et quelles actions sont utilisés) aident à
+  améliorer le jeu de cartes. Aucun identifiant utilisateur, aucun identifiant publicitaire, aucun
+  texte de question — et un simple interrupteur dans les Réglages les désactive.
 
 POURQUOI CETTE APPLICATION EXISTE
 Les meilleures conversations en famille démarrent rarement d'elles-mêmes — il faut que quelqu'un

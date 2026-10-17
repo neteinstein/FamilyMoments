@@ -110,6 +110,127 @@ Obfuscated stack traces need the matching mapping file, and R8 emits a different
 
 `.github/dependabot.yml` runs weekly `gradle` and `github-actions` update checks.
 
+## Firebase Analytics
+
+Firebase Analytics runs on **Android (both flavors) and Web**; iOS binds a no-op. The seam is
+`core:domain`'s `AnalyticsTracker` interface, implemented per platform in `core:data` and bound
+through `expect val platformAnalyticsModule` - the same shape `platformUpdateModule` already uses
+for the Android-only self-update feature.
+
+```
+core:domain   AnalyticsTracker, AnalyticsEvents/Params/Screens/UserProperties (the name catalog),
+              AnalyticsPreferenceRepository, Get/Set/ObserveAnalyticsEnabledUseCase
+core:data     AnalyticsPreferenceRepositoryImpl (KeyValueStore-backed, defaults true)
+              ConsentAwareAnalyticsTracker  <- what Koin binds as AnalyticsTracker
+              platformAnalyticsModule: androidMain -> FirebaseAnalyticsTracker
+                                       wasmJsMain  -> FirebaseWebAnalyticsTracker
+                                       iosMain     -> NoOpAnalyticsTracker
+```
+
+**Adding an event** means adding its name to `AnalyticsEvents` (and any new parameter to
+`AnalyticsParams`) and calling `analyticsTracker.logEvent(...)` from a ViewModel. `core:domain`'s
+`AnalyticsEventsTest` enforces Firebase's naming rules over that catalog - at most 40 characters of
+`[a-z0-9_]`, starting with a letter, no `firebase_`/`google_`/`ga_` prefix - so a name Firebase
+would silently drop fails the build instead. Treat the constants as a published schema: renaming
+one starts a new series in the console and orphans the old one.
+
+Never call the tracker from a composable when a ViewModel can carry the call. Shuffle, the
+grid/swipe toggle and opening a card full screen are pure `HomeScreen` state, and are still routed
+through `HomeViewModel.onShuffleClicked`/`onViewModeToggled`/`onQuestionExpanded` so they stay
+unit-testable. The two exceptions have no ViewModel seam: `core:ui`'s `InstallAppBanner` (which
+also can't import the catalog - `core:ui` depends on nothing but Compose) reports through an
+`onBannerAction: (String) -> Unit` callback that `App()` forwards to the tracker.
+
+Screen views come from one place: `App.kt` collects `navController.currentBackStackEntryFlow` and
+maps the three routes in `Screen.kt`. The grid and the full-screen card aren't destinations, so
+they report themselves via `HomeViewModel` (`AnalyticsScreens.HOME_GRID`/`QUESTION_FULLSCREEN`).
+
+**No user identifier exists anywhere.** There is no account, and the app deliberately never calls
+`setUserId` and never generates or stores an install ID - per-user metrics come from Firebase's own
+app-instance ID. `AnalyticsUserProperties` carries coarse dimensions only, and
+`hidden_cards_bucket` is bucketed (`0`/`1_10`/`11_50`/`51_plus`) rather than a raw count precisely
+so it can't become a near-unique per-device value.
+
+**Consent is opt-out.** `ConsentAwareAnalyticsTracker` wraps the platform tracker: it drops calls
+while the user is opted out *and* pushes `setCollectionEnabled` down to the SDK, which is the half
+that actually stops network traffic (dropping calls upstream wouldn't stop Firebase's own
+automatic `session_start`/`user_engagement`/`first_open`). It also emits the opt-in/opt-out events
+itself, because their ordering around the switch is what makes them recordable at all - an
+opt-*out* event logged after collection stops never leaves the device. Settings' "Share usage data"
+switch drives it via `SettingsViewModel.onAnalyticsEnabledChanged`.
+
+### Configuration, and what it actually protects
+
+| Artifact | Local dev | CI |
+|---|---|---|
+| `androidApp/google-services.json` | drop it in by hand from the Firebase console | `GOOGLE_SERVICES_JSON` secret, base64, decoded by the workflow |
+| `webApp/firebase-web-config.json` | the console's `firebaseConfig` object saved as JSON | `FIREBASE_WEB_CONFIG` secret, raw JSON, read from the env by Gradle |
+
+Both are git-ignored and **both are optional at build time**. Missing Android config means
+`androidApp/build.gradle.kts` never applies the google-services plugin (it hard-fails on a missing
+file, which would break every fork), no `google_app_id` resource is generated, and
+`FirebaseAnalyticsTracker` no-ops. Missing web config means `generateFirebaseWebInit` emits a stub
+that leaves `window.__familyMomentsAnalytics` null, and `FirebaseWebAnalyticsTracker` no-ops.
+`pr.yml` therefore treats the secret as optional - a fork PR can't read secrets at all - while
+`release.yml` requires it in its fail-fast list, because a release that silently ships without
+analytics looks healthy and reports nothing for the life of that version.
+
+These values are **client identifiers, not secrets**: they ship inside every APK and inside the JS
+bundle, and anyone can extract them. Keeping them out of git avoids secret-scanner noise and keeps
+forks out of this Firebase project, but it buys hygiene, not confidentiality. What actually
+protects the project is restricting both API keys in Google Cloud Console → Credentials - the
+Android key to `org.neteinstein.family` + the release SHA-1, the browser key to HTTP referrers on
+the deployed domains - plus Firebase App Check if a backend product (Firestore/Storage/Functions)
+is ever added. A service-account key must never go anywhere near client code.
+
+### The Web bridge
+
+Kotlin/Wasm has no `@JsModule` support and this repo has no npm/webpack setup, so the Firebase JS
+SDK is loaded as an ES module from the gstatic CDN by a generated `firebase-init.js`
+(`webApp/firebase-init.js.template` → `generateFirebaseWebInit` → a `wasmJsMain` resources srcDir),
+which publishes a small `window.__familyMomentsAnalytics` object that
+`FirebaseWebAnalyticsTracker` calls through `js(...)`. **That bridge buffers on purpose:** a
+`type="module"` script is deferred, so its `import()` is still in flight while the wasm app is
+already reporting its first `screen_view`. The stub queues calls and replays them once the SDK
+resolves; without it every startup event is dropped silently. The template's two placeholder
+tokens must each appear exactly once and never inside a comment - the config JSON is multi-line, so
+a second occurrence would spill real JSON onto uncommented lines and break the script.
+
+### Permissions, and what this changed
+
+`INTERNET` and `ACCESS_NETWORK_STATE` now live in `androidApp/src/main/AndroidManifest.xml`, not
+just the `github` flavor's. The `playstore` flavor previously declared no permissions at all and
+made no network requests - `firebase-analytics` merges those permissions into every flavor
+regardless, so they are declared explicitly to keep the shipped permission set visible in the
+source manifest rather than only in a generated one. `com.google.android.gms.permission.AD_ID` and
+the two `ACCESS_ADSERVICES_*` Privacy Sandbox permissions are stripped with `tools:node="remove"`:
+this app has no ads, and declaring them would oblige an "Advertising ID" entry in the Play Data
+Safety form for no benefit. Verify with:
+
+```bash
+./gradlew :androidApp:processPlaystoreDebugMainManifest
+grep -E 'uses-permission' \
+  androidApp/build/intermediates/merged_manifest/playstoreDebug/*/AndroidManifest.xml
+```
+
+**Because this changed what the app does, four documents had to change with it** -
+`PRIVACY_POLICY.md`, `README.md`, and `docs/android/<locale>/full_description.txt` in all five
+locales all previously promised that no data ever leaves the device. A fifth change is manual and
+outside this repo: the **Play Console Data Safety form** must declare "App activity / App
+interactions" and "Device or other IDs" as collected, not shared, not linked to identity, and
+optional (the user can turn it off). Keep all of these in step with any future change to what is
+collected.
+
+### Verifying events
+
+Android:
+```bash
+adb shell setprop debug.firebase.analytics.app org.neteinstein.family
+adb logcat -s FA FA-SVC
+```
+Web: DevTools → Network, filtered to `google-analytics.com/g/collect`. Either way, Firebase
+Console → Analytics → DebugView shows events within seconds instead of hours.
+
 ## Architecture
 
 > **KMP migration complete** (merged to `main`, Phases 1-8/8 done): this repo has been migrated to

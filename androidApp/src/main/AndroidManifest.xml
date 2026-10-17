@@ -1,5 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Firebase Analytics needs both, on BOTH distribution flavors (see core:data's
+         FirebaseAnalyticsTracker). They are declared explicitly here rather than left to manifest
+         merging - the firebase-analytics AAR declares them itself and they would be merged in
+         regardless - so that the permission set of the shipped app is visible and reviewable in
+         this file instead of only in a generated merged manifest. Note this supersedes the
+         previous arrangement where INTERNET existed only in the "github" flavor: the "playstore"
+         flavor now makes network calls too (analytics uploads only - it still has no update
+         check), which is why PRIVACY_POLICY.md and the Play Store listing copy were rewritten in
+         the same change. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- firebase-analytics pulls play-services-measurement in, which declares AD_ID so Analytics
+         can attach the advertising ID to events. This app has no ads and no attribution needs, so
+         the permission is removed from the merged manifest: collecting it would oblige a
+         "Device or other IDs -> Advertising ID" entry in the Play Console Data Safety form for no
+         benefit. Firebase degrades gracefully - it simply stops reading the ad ID. -->
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
+
+    <!-- The Privacy Sandbox equivalents of the same thing, merged in by the same library: the
+         AdServices ad-ID and attribution APIs. Removed for the same reason - this app runs no ads
+         and measures no ad attribution, so declaring them would only broaden what the Data Safety
+         form has to disclose. Verified against the merged manifest, not assumed: see the
+         "Merged manifest check" step in AGENTS.md's Firebase Analytics section. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_ADSERVICES_AD_ID"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION"
+        tools:node="remove" />
 
     <application
         android:name=".FamilyMomentsApp"

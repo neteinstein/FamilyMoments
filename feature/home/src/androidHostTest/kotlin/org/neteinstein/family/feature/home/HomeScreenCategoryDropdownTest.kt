@@ -60,7 +60,13 @@ class HomeScreenCategoryDropdownTest {
         coEvery { getQuestionsUseCase(any()) } returns emptyList()
         coEvery { getUsedQuestionIdsUseCase() } returns emptySet()
         coEvery { markQuestionUsedUseCase(any()) } returns Unit
-        return HomeViewModel(getQuestionsUseCase, getContentLanguageUseCase, getUsedQuestionIdsUseCase, markQuestionUsedUseCase)
+        return HomeViewModel(
+            getQuestionsUseCase,
+            getContentLanguageUseCase,
+            getUsedQuestionIdsUseCase,
+            markQuestionUsedUseCase,
+            mockk(relaxed = true),
+        )
     }
 
     @Test

@@ -29,6 +29,10 @@ render.experimental.xml
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
+# The Web build's equivalent: webApp/firebase-web-config.json holds the `firebaseConfig` object
+# the Firebase console hands out for the web app, and is rendered into the generated
+# firebase-init.js at build time. CI supplies it through the FIREBASE_WEB_CONFIG secret instead.
+firebase-web-config.json
 
 # Android Profiling
 *.hprof

@@ -1,0 +1,71 @@
+// Firebase Analytics bootstrap for the Web (wasmJs) build.
+//
+// GENERATED AT BUILD TIME - webApp/build.gradle.kts's `generateFirebaseWebInit` task renders this
+// template into build/generated/firebaseWeb/firebase-init.js, substituting the config placeholder
+// in the `firebaseConfig` assignment below with the JSON from FIREBASE_WEB_CONFIG (CI) or
+// webApp/firebase-web-config.json (local dev). Neither source is committed - see AGENTS.md's
+// Firebase Analytics section. Edit this template, never the generated file.
+//
+// Both placeholder tokens appear exactly once each, in the two assignments below, and nowhere in
+// these comments: the substitution is a plain string replace, and the config JSON is multi-line,
+// so a second occurrence inside a `//` comment would spill real JSON onto uncommented lines and
+// break the script.
+//
+// Why a hand-written script instead of a Kotlin dependency: Kotlin/Wasm has no @JsModule support
+// and this repo has no npm/webpack setup, so the SDK is imported as an ES module from the gstatic
+// CDN here and exposed to Kotlin through the small window.__familyMomentsAnalytics bridge that
+// core:data's FirebaseWebAnalyticsTracker calls.
+//
+// The queue matters: a type="module" script is deferred, so this file's import() is still in
+// flight while the wasm app is already starting and reporting its first screen_view. The bridge
+// is therefore published synchronously as a buffering stub and only swapped for the real
+// implementation once the SDK resolves, at which point the buffer is replayed in order. Without
+// it every startup event would be dropped silently.
+
+const firebaseConfig = __FIREBASE_CONFIG__;
+
+const queue = [];
+let live = null;
+
+function enqueue(method, args) {
+    if (live) {
+        live[method](...args);
+    } else {
+        queue.push([method, args]);
+    }
+}
+
+window.__familyMomentsAnalytics = {
+    logEvent: (name, params) => enqueue('logEvent', [name, params]),
+    setUserProperties: (properties) => enqueue('setUserProperties', [properties]),
+    setCollectionEnabled: (enabled) => enqueue('setCollectionEnabled', [enabled]),
+};
+
+const SDK = 'https://www.gstatic.com/firebasejs/__FIREBASE_SDK_VERSION__';
+
+Promise.all([
+    import(`${SDK}/firebase-app.js`),
+    import(`${SDK}/firebase-analytics.js`),
+])
+    .then(([app, analyticsModule]) => {
+        const firebaseApp = app.initializeApp(firebaseConfig);
+        const analytics = analyticsModule.getAnalytics(firebaseApp);
+        live = {
+            logEvent: (name, params) => analyticsModule.logEvent(analytics, name, params),
+            setUserProperties: (properties) => analyticsModule.setUserProperties(analytics, properties),
+            setCollectionEnabled: (enabled) =>
+                analyticsModule.setAnalyticsCollectionEnabled(analytics, enabled),
+        };
+        // Replace the buffering stub so later calls skip the queue entirely.
+        window.__familyMomentsAnalytics = live;
+        for (const [method, args] of queue.splice(0)) {
+            live[method](...args);
+        }
+    })
+    .catch((error) => {
+        // An ad blocker, an offline first load, or a CDN hiccup. Analytics is best-effort: drop
+        // the bridge so FirebaseWebAnalyticsTracker no-ops rather than queueing forever.
+        console.warn('[FamilyMoments] Firebase Analytics unavailable:', error);
+        window.__familyMomentsAnalytics = null;
+        queue.length = 0;
+    });

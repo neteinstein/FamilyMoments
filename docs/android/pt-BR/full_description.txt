@@ -1,6 +1,6 @@
 O Family Moments mostra uma pergunta de cada vez — desliza um baralho de perguntas feitas para
-gerar conversas de verdade com as pessoas que você ama. Sem contas, sem servidor, nada sai do
-seu aparelho.
+gerar conversas de verdade com as pessoas que você ama. Sem contas, sem servidor, e as suas
+respostas nunca saem do seu aparelho.
 
 COMO FUNCIONA
 Deslize para a direita para a próxima pergunta, para a esquerda para a anterior, para cima para
@@ -23,8 +23,11 @@ FEITO PARA CONVERSAS REAIS, NÃO SÓ UMA DEMONSTRAÇÃO
   app está disponível em inglês e português, trocável a qualquer momento pelo seletor de idioma
   por app do Android.
 • Tema claro, escuro ou do sistema.
-• Sem contas, sem login, sem anúncios, e nenhum dado sai do seu aparelho — tudo é guardado
-  localmente.
+• Sem contas, sem login e sem anúncios. As suas cartas, tema e idioma ficam guardados
+  localmente e nunca são enviados para lugar nenhum.
+• Estatísticas de uso anónimas (que ecrãs e ações são usados) ajudam a melhorar o baralho. Sem
+  identificador de utilizador, sem ID de publicidade, sem o texto das perguntas — e um botão nas
+  Definições desliga tudo.
 
 POR QUE ISSO EXISTE
 As melhores conversas em família raramente começam por conta própria — alguém precisa fazer a

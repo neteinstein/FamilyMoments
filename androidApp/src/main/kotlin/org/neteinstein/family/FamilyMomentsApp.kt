@@ -15,7 +15,7 @@ class FamilyMomentsApp : Application() {
         startKoin {
             androidLogger(Level.ERROR)
             androidContext(this@FamilyMomentsApp)
-            modules(appModule(BuildConfig.UPDATES_ENABLED))
+            modules(appModule(BuildConfig.UPDATES_ENABLED, BuildConfig.DISTRIBUTION))
         }
     }
 }

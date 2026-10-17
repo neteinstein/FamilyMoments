@@ -15,6 +15,11 @@ data class SettingsUiState(
     val totalCardsCount: Int = 0,
     /** The user's in-app language override, or `null` to follow the OS/browser language - see SettingsViewModel. */
     val languageOverride: AppLanguage? = null,
+    /**
+     * The "Share usage data" switch. Analytics is opt-out, so this is true until the user says
+     * otherwise - see SettingsViewModel.onAnalyticsEnabledChanged and PRIVACY_POLICY.md.
+     */
+    val analyticsEnabled: Boolean = true,
 )
 
 /** Drives the "Reset Cards" button and its status text on the Settings screen. */

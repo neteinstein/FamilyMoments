@@ -4,6 +4,8 @@
     <string name="section_app_preferences">Preferências do App</string>
     <string name="settings_theme_title">Tema</string>
     <string name="settings_theme_subtitle">Escolha a aparência do app</string>
+    <string name="settings_analytics_title">Partilhar dados de utilização</string>
+    <string name="settings_analytics_subtitle">Ajuda a melhorar a app com estatísticas anónimas. Nunca dados pessoais.</string>
     <string name="settings_theme_system">Sistema</string>
     <string name="settings_theme_light">Claro</string>
     <string name="settings_theme_dark">Escuro</string>
