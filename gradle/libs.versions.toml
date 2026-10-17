@@ -30,8 +30,8 @@ ksp = "2.3.12"
 robolectric = "4.17"
 pagerIndicator = "0.0.9"
 playPublisher = "4.1.1"
-# Compose Multiplatform - pinned to the exact Kotlin 2.4.10 pairing already validated in
-# neteinstein/loopgain (the reference KMP+CMP app this migration follows).
+# Compose Multiplatform - kept on a release paired with the Kotlin version above (originally validated in
+# neteinstein/loopgain, the reference KMP+CMP app this migration follows).
 composeMultiplatform = "1.12.1"
 
 [libraries]
