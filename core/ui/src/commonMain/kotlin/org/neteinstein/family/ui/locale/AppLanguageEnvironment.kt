@@ -4,7 +4,7 @@
 // (CMP-2870/compose-multiplatform#4347). The one seam that exists, the `LocalComposeEnvironment`
 // CompositionLocal every resource getter reads, is `internal` to compose's `components-resources`
 // module, so reaching it needs these suppressions. Everything else here is public-but-opt-in
-// (`@InternalResourceApi`). Verified against Compose Multiplatform 1.11.1 for the android, iosX,
+// (`@InternalResourceApi`). Verified against Compose Multiplatform 1.12.1 for the android, iosX,
 // and wasmJs targets; if a CMP bump breaks this file, `AppLanguageEnvironmentTest` fails and the
 // fix is to re-check `ResourceEnvironment.kt` in that version's `components-resources` sources.
 @file:Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
@@ -23,6 +23,7 @@ import org.jetbrains.compose.resources.LanguageQualifier
 import org.jetbrains.compose.resources.LocalComposeEnvironment
 import org.jetbrains.compose.resources.RegionQualifier
 import org.jetbrains.compose.resources.ResourceEnvironment
+import org.jetbrains.compose.resources.ScriptQualifier
 import org.jetbrains.compose.resources.ThemeQualifier
 
 /**
@@ -32,9 +33,9 @@ import org.jetbrains.compose.resources.ThemeQualifier
  *
  * [languageCode] `null` means "no override": composition is left untouched, so resources keep
  * resolving against the platform locale exactly as they do without this wrapper. Only the language
- * is overridden - theme and density qualifiers still come from the platform, and the region
- * qualifier is cleared (the app ships no region-specific resources, and a region inherited from a
- * locale the user has just overridden away from would be wrong).
+ * is overridden - theme and density qualifiers still come from the platform, and the script and
+ * region qualifiers are cleared (the app ships no script- or region-specific resources, and either
+ * inherited from a locale the user has just overridden away from would be wrong).
  */
 @Composable
 fun ProvideAppLanguage(
@@ -64,6 +65,7 @@ private class AppLanguageComposeEnvironment(
         return remember(languageCode, isDarkTheme, density) {
             ResourceEnvironment(
                 language = LanguageQualifier(languageCode),
+                script = ScriptQualifier(""),
                 region = RegionQualifier(""),
                 theme = ThemeQualifier.selectByValue(isDarkTheme),
                 density = DensityQualifier.selectByDensity(density.density),
