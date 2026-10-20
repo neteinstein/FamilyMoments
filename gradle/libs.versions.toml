@@ -4,7 +4,7 @@ kotlin = "2.4.20"
 coroutines = "1.10.2"
 lifecycle = "2.10.0"
 navigationCompose = "2.10.1"
-kover = "0.9.9"
+kover = "0.9.11"
 # The JetBrains-published KMP fork of Navigation Compose (same androidx.navigation.* package, just
 # a different Maven coordinate) - the mainline androidx.navigation:navigation-compose artifact
 # publishes Android/JVM/native variants but no wasmJs one (confirmed via a real Gradle resolution
