@@ -10,7 +10,7 @@ kover = "0.9.9"
 # publishes Android/JVM/native variants but no wasmJs one (confirmed via a real Gradle resolution
 # failure, not assumed), so `app`'s commonMain needs this instead. See AGENTS.md's KMP migration
 # section.
-navigationComposeMultiplatform = "2.10.0-beta01"
+navigationComposeMultiplatform = "2.10.0-rc01"
 composeBom = "2026.09.00"
 activityCompose = "1.10.1"
 koin = "4.0.3"
