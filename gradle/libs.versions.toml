@@ -3,7 +3,7 @@ agp = "9.4.1"
 kotlin = "2.4.20"
 coroutines = "1.10.2"
 lifecycle = "2.10.0"
-navigationCompose = "2.10.1"
+navigationCompose = "2.10.2"
 kover = "0.9.9"
 # The JetBrains-published KMP fork of Navigation Compose (same androidx.navigation.* package, just
 # a different Maven coordinate) - the mainline androidx.navigation:navigation-compose artifact
